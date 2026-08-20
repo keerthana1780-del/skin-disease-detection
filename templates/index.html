@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Skin Disease AI Detection</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #eef5ff, #f8fbff);
+            color: #263238;
+            min-height: 100vh;
+        }
+
+
+        /* ================= HEADER ================= */
+
+        .header {
+            background: linear-gradient(135deg, #173f5f, #205b82);
+            color: white;
+            text-align: center;
+            padding: 32px 20px;
+        }
+
+
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+
+        .header p {
+            margin: 10px 0 0;
+            font-size: 16px;
+        }
+
+
+        /* ================= CONTAINER ================= */
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+
+        /* ================= CARD ================= */
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 22px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+        }
+
+
+        .card h2 {
+            text-align: center;
+            color: #173f5f;
+        }
+
+
+        .intro {
+            text-align: center;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+
+        /* ================= UPLOAD ================= */
+
+        .upload-box {
+            border: 2px dashed #5c8db5;
+            padding: 30px;
+            border-radius: 18px;
+            background: #f8fbff;
+            text-align: center;
+        }
+
+
+        .upload-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #173f5f;
+        }
+
+
+        .upload-help {
+            font-size: 14px;
+            color: #777;
+            margin: 10px 0 20px;
+        }
+
+
+        input[type="file"] {
+            display: block;
+            width: 100%;
+            max-width: 450px;
+            margin: auto;
+            padding: 12px;
+            background: white;
+            border: 1px solid #ccd6df;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+
+        /* ================= IMAGE PREVIEW ================= */
+
+        #preview-box {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+
+        #preview {
+            width: 320px;
+            max-width: 100%;
+            max-height: 320px;
+            object-fit: contain;
+            border-radius: 15px;
+            border: 3px solid #5c8db5;
+            box-shadow: 0 5px 18px rgba(0, 0, 0, 0.1);
+        }
+
+
+        /* ================= DESCRIPTION ================= */
+
+        .description-box {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+
+        .description-title {
+            font-size: 19px;
+            font-weight: bold;
+            color: #173f5f;
+            margin-bottom: 8px;
+        }
+
+
+        .description-help {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 1px solid #ccd6df;
+            border-radius: 12px;
+            resize: vertical;
+            font-family: Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            outline: none;
+        }
+
+
+        textarea:focus {
+            border-color: #205b82;
+            box-shadow: 0 0 0 3px rgba(32, 91, 130, 0.12);
+        }
+
+
+        /* ================= PREDICT BUTTON ================= */
+
+        .predict-box {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+
+        .predict-btn {
+            background: linear-gradient(135deg, #173f5f, #205b82);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(23, 63, 95, 0.25);
+        }
+
+
+        /* ================= TELEGRAM ================= */
+
+        .telegram-section {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+
+        .telegram-btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: #229ed9;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+
+        .telegram-text {
+            font-size: 13px;
+            color: #777;
+            margin-top: 8px;
+        }
+
+
+        /* ================= RESULT ================= */
+
+        .result {
+            margin-top: 35px;
+            padding: 28px;
+            background: linear-gradient(135deg, #f2f8ff, #ffffff);
+            border: 1px solid #d5e5f3;
+            border-radius: 18px;
+        }
+
+
+        .result h2 {
+            text-align: center;
+            color: #173f5f;
+            margin-bottom: 20px;
+        }
+
+
+        .result-label {
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+
+
+        .disease {
+            text-align: center;
+            font-size: 23px;
+            font-weight: bold;
+            color: #173f5f;
+            margin: 10px 0 18px;
+        }
+
+
+        .confidence {
+            text-align: center;
+            font-size: 17px;
+            color: #444;
+        }
+
+
+        /* ================= DESCRIPTION RESULT ================= */
+
+        .description-result {
+            margin-top: 25px;
+            padding: 18px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #d6e6f5;
+        }
+
+
+        .description-result-title {
+            color: #173f5f;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+
+        .description-result p {
+            margin: 0;
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+
+        /* ================= WARNING ================= */
+
+        .warning {
+            margin-top: 30px;
+            padding: 16px;
+            background: #fff5d9;
+            border: 1px solid #f0d98c;
+            border-radius: 12px;
+            color: #765800;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+
+        /* ================= FOOTER ================= */
+
+        .footer {
+            text-align: center;
+            color: #777;
+            padding: 25px;
+            font-size: 14px;
+        }
+
+
+        /* ================= MOBILE ================= */
+
+        @media (max-width: 600px) {
+
+            .header {
+                padding: 25px 15px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .container {
+                margin: 20px auto;
+                padding: 12px;
+            }
+
+            .card {
+                padding: 25px 18px;
+            }
+
+            #preview {
+                max-width: 100%;
+                max-height: 250px;
+            }
+
+            .disease {
+                font-size: 19px;
+            }
+
+            .predict-btn,
+            .telegram-btn {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- ================= HEADER ================= -->
+
+    <div class="header">
+
+        <h1>🩺 Skin Disease AI Detection</h1>
+
+        <p>
+            AI-based skin image classification system
+        </p>
+
+    </div>
+
+
+    <!-- ================= MAIN ================= -->
+
+    <div class="container">
+
+        <div class="card">
+
+            <h2>Upload Skin Image</h2>
+
+            <p class="intro">
+                Upload a clear skin image and provide additional
+                information before running the AI prediction.
+            </p>
+
+
+            <!-- ================= FORM ================= -->
+
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+
+                <div class="upload-box">
+
+
+                    <!-- ================= FILE ================= -->
+
+                    <div class="upload-title">
+                        📁 Select a Skin Image
+                    </div>
+
+
+                    <div class="upload-help">
+                        Supported formats: JPG, JPEG, PNG
+                    </div>
+
+
+                    <input
+                        type="file"
+                        id="image"
+                        name="image"
+                        accept="image/*"
+                        required
+                    >
+
+
+                    <!-- ================= IMAGE PREVIEW ================= -->
+
+                    <div id="preview-box">
+
+                        <h3 style="color:#173f5f;">
+                            🖼️ Selected Image
+                        </h3>
+
+
+                        <img
+                            id="preview"
+                            alt="Selected skin image"
+                        >
+
+                    </div>
+
+
+                    <!-- ================= DESCRIPTION ================= -->
+
+                    <div class="description-box">
+
+                        <div class="description-title">
+                            📝 Description
+                        </div>
+
+
+                        <div class="description-help">
+
+                            You can describe your concern, such as
+                            itching, redness, swelling, duration of
+                            the problem, or any other information.
+
+                        </div>
+
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            placeholder="Example: Redness and itching for 3 days..."
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- ================= PREDICT ================= -->
+
+                    <div class="predict-box">
+
+                        <button
+                            type="submit"
+                            class="predict-btn"
+                        >
+                            🔍 Predict Disease
+                        </button>
+
+                    </div>
+
+
+                </div>
+
+            </form>
+
+
+            <!-- ================= TELEGRAM ================= -->
+
+            <div class="telegram-section">
+
+                <a
+                    href="https://t.me/KeerthanaSkinDiseaseBot?start=website"
+                    target="_blank"
+                    class="telegram-btn"
+                >
+                    🤖 Use Telegram Bot
+                </a>
+
+
+                <div class="telegram-text">
+
+                    You can also send a skin image
+                    through our Telegram bot.
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= RESULT ================= -->
+
+            {% if prediction %}
+
+            <div class="result">
+
+                <h2>
+                    🔬 AI Prediction Result
+                </h2>
+
+
+                <div class="result-label">
+                    Predicted Class
+                </div>
+
+
+                <div class="disease">
+                    {{ prediction }}
+                </div>
+
+
+                <div class="confidence">
+
+                    Confidence:
+                    <strong>{{ confidence }}%</strong>
+
+                </div>
+
+
+                <!-- ================= DESCRIPTION RESULT ================= -->
+
+                <div class="description-result">
+
+                    <div class="description-result-title">
+                        📝 Description
+                    </div>
+
+
+                    <p>{{ description }}</p>
+
+                </div>
+
+
+            </div>
+
+            {% endif %}
+
+
+            <!-- ================= WARNING ================= -->
+
+            <div class="warning">
+
+                ⚠️ <strong>Educational Project Notice:</strong>
+
+                This system is developed for educational and project
+                demonstration purposes. The prediction is generated
+                by an AI model and should not be considered a medical
+                diagnosis or a replacement for professional medical advice.
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <div class="footer">
+
+        Skin Disease Detection Project
+
+        <br>
+
+        CNN + TensorFlow + Flask
+
+    </div>
+
+
+    <!-- ================= IMAGE PREVIEW ================= -->
+
+    <script>
+
+        const imageInput = document.getElementById("image");
+
+        const preview = document.getElementById("preview");
+
+
+        imageInput.addEventListener("change", function () {
+
+            const file = this.files[0];
+
+
+            if (file) {
+
+                const reader = new FileReader();
+
+
+                reader.onload = function (event) {
+
+                    preview.src = event.target.result;
+
+                };
+
+
+                reader.readAsDataURL(file);
+
+            }
+
+        });
+
+    </script>
+
+
+</body>
+
+</html>
