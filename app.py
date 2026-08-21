@@ -1,4 +1,3 @@
-```python
 import os
 import urllib.request
 import numpy as np
@@ -54,8 +53,16 @@ HF_MODEL_URL = (
     "models/skin_disease_cnn_v2.keras"
 )
 
+# IMPORTANT:
+# Do NOT use /app/models/... here.
+# Render will download the model to /tmp.
+
 MODEL_PATH = "/tmp/skin_disease_cnn_v2.keras"
 
+
+# =========================================================
+# DOWNLOAD MODEL FROM HUGGING FACE
+# =========================================================
 
 def download_model():
 
@@ -63,35 +70,32 @@ def download_model():
     print("CHECKING CNN MODEL")
     print("==========================================")
 
+    # If model already exists, use it
     if os.path.exists(MODEL_PATH):
 
         size = os.path.getsize(MODEL_PATH)
 
-        if size > 1_000_000:
+        print("Existing model found.")
+        print("Model size:", size, "bytes")
 
-            print(
-                "Model already exists."
-            )
-
-            print(
-                "Model size:",
-                size,
-                "bytes"
-            )
-
+        if size > 100_000_000:
+            print("Model already downloaded.")
             return
 
-        else:
+        print("Existing model is too small.")
+        print("Removing corrupted model...")
 
+        try:
             os.remove(MODEL_PATH)
+        except Exception:
+            pass
 
-    print(
-        "Downloading CNN model from Hugging Face..."
-    )
+    print("==========================================")
+    print("DOWNLOADING CNN MODEL")
+    print("==========================================")
 
-    print(
-        HF_MODEL_URL
-    )
+    print("Hugging Face URL:")
+    print(HF_MODEL_URL)
 
     try:
 
@@ -127,35 +131,33 @@ def download_model():
             MODEL_PATH
         )
 
-        print(
-            "Downloaded model size:",
-            size,
-            "bytes"
-        )
+        print("Downloaded model size:")
+        print(size, "bytes")
 
-        if size < 1_000_000:
+        if size < 100_000_000:
 
             raise RuntimeError(
-                "Downloaded model file is too small."
+                "Downloaded model is smaller than expected."
             )
 
-        print(
-            "CNN model downloaded successfully!"
-        )
+        print("==========================================")
+        print("CNN MODEL DOWNLOADED SUCCESSFULLY")
+        print("==========================================")
 
     except Exception as e:
 
-        print(
-            "MODEL DOWNLOAD ERROR:",
-            repr(e)
-        )
+        print("==========================================")
+        print("MODEL DOWNLOAD ERROR")
+        print("==========================================")
 
-        if os.path.exists(
-            MODEL_PATH
-        ):
-            os.remove(
-                MODEL_PATH
-            )
+        print(repr(e))
+
+        if os.path.exists(MODEL_PATH):
+
+            try:
+                os.remove(MODEL_PATH)
+            except Exception:
+                pass
 
         raise
 
@@ -166,6 +168,7 @@ def download_model():
 
 download_model()
 
+
 # =========================================================
 # LOAD MODEL
 # =========================================================
@@ -174,10 +177,14 @@ print("==========================================")
 print("LOADING CNN MODEL")
 print("==========================================")
 
-print(
-    "Model path:",
-    MODEL_PATH
-)
+print("Model path:")
+print(MODEL_PATH)
+
+if not os.path.exists(MODEL_PATH):
+
+    raise FileNotFoundError(
+        "CNN model was not downloaded."
+    )
 
 try:
 
@@ -185,16 +192,17 @@ try:
         MODEL_PATH
     )
 
-    print(
-        "CNN model loaded successfully!"
-    )
+    print("==========================================")
+    print("CNN MODEL LOADED SUCCESSFULLY")
+    print("==========================================")
 
 except Exception as e:
 
-    print(
-        "MODEL LOAD ERROR:",
-        repr(e)
-    )
+    print("==========================================")
+    print("MODEL LOAD ERROR")
+    print("==========================================")
+
+    print(repr(e))
 
     raise
 
@@ -203,27 +211,37 @@ except Exception as e:
 # IMAGE SETTINGS
 # =========================================================
 
-IMG_SIZE = (
-    224,
-    224
-)
+IMG_SIZE = (224, 224)
+
 
 # =========================================================
 # DISEASE CLASSES
 # =========================================================
 
 class_names = [
+
     "Eczema",
+
     "Warts Molluscum and other Viral Infections",
+
     "Melanoma",
+
     "Atopic Dermatitis",
+
     "Basal Cell Carcinoma (BCC)",
+
     "Melanocytic Nevi (NV)",
+
     "Benign Keratosis-like Lesions (BKL)",
+
     "Psoriasis / Lichen Planus",
+
     "Seborrheic Keratoses",
+
     "Tinea / Fungal Infection"
+
 ]
+
 
 # =========================================================
 # UPLOAD FOLDER
@@ -239,12 +257,11 @@ os.makedirs(
     exist_ok=True
 )
 
-app.config[
-    "UPLOAD_FOLDER"
-] = UPLOAD_FOLDER
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 
 # =========================================================
-# IMAGE PREDICTION FUNCTION
+# IMAGE PREDICTION
 # =========================================================
 
 def predict_image(image_path):
@@ -269,9 +286,7 @@ def predict_image(image_path):
     )
 
     predicted_index = int(
-        np.argmax(
-            predictions[0]
-        )
+        np.argmax(predictions[0])
     )
 
     disease = class_names[
@@ -295,10 +310,7 @@ def predict_image(image_path):
 
 @app.route(
     "/",
-    methods=[
-        "GET",
-        "POST"
-    ]
+    methods=["GET", "POST"]
 )
 def home():
 
@@ -326,9 +338,7 @@ def home():
             )
 
             image_path = os.path.join(
-                app.config[
-                    "UPLOAD_FOLDER"
-                ],
+                app.config["UPLOAD_FOLDER"],
                 filename
             )
 
@@ -338,11 +348,10 @@ def home():
 
             try:
 
-                (
-                    prediction,
-                    confidence
-                ) = predict_image(
-                    image_path
+                prediction, confidence = (
+                    predict_image(
+                        image_path
+                    )
                 )
 
             except Exception as e:
@@ -376,10 +385,15 @@ async def start(
 ):
 
     await update.message.reply_text(
+
         "👋 Welcome to Skin Disease Detection Bot!\n\n"
+
         "📸 Send a skin image to get an AI prediction.\n\n"
+
         "📌 Use /help for commands.\n"
+
         "ℹ️ Use /about for project information."
+
     )
 
 
@@ -393,11 +407,17 @@ async def help_command(
 ):
 
     await update.message.reply_text(
+
         "📌 Available Commands:\n\n"
+
         "/start - Start the bot\n"
+
         "/help - Show available commands\n"
+
         "/about - About the project\n\n"
+
         "📸 Send a skin image to get a prediction."
+
     )
 
 
@@ -411,14 +431,21 @@ async def about_command(
 ):
 
     await update.message.reply_text(
+
         "🩺 Skin Disease Detection Bot\n\n"
+
         "🤖 CNN-based deep learning project "
         "for skin image classification.\n\n"
+
         "🧠 Model: CNN\n"
+
         "🖼️ Image Size: 224 × 224\n"
+
         "📊 Classes: 10\n\n"
+
         "⚠️ This is an AI model prediction, "
         "not a medical diagnosis."
+
     )
 
 
@@ -459,11 +486,16 @@ async def handle_photo(
         )
 
         await update.message.reply_text(
+
             f"🔍 Prediction Result\n\n"
+
             f"🦠 Disease: {disease}\n"
+
             f"📊 Confidence: {confidence:.2f}%\n\n"
+
             f"⚠️ This is an AI model prediction, "
             f"not a medical diagnosis."
+
         )
 
     except Exception as e:
@@ -564,14 +596,10 @@ async def telegram_webhook():
 # HEALTH CHECK
 # =========================================================
 
-@app.route(
-    "/health"
-)
+@app.route("/health")
 def health():
 
-    return (
-        "Skin Disease AI is running!"
-    )
+    return "Skin Disease AI is running!"
 
 
 # =========================================================
@@ -591,4 +619,3 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=port
     )
-```
