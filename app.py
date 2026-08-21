@@ -1,13 +1,10 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
+
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -17,31 +14,59 @@ from telegram.ext import (
     filters,
 )
 
+# ==========================================
+# BASE DIRECTORY
+# ==========================================
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ==========================================
+# FLASK APP
+# ==========================================
+
 app = Flask(__name__)
 
-# ==============================
-# Telegram
-# ==============================
+# ==========================================
+# TELEGRAM BOT
+# ==========================================
 
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
-telegram_app = Application.builder().token(TOKEN).build()
+telegram_app = None
 
+if TOKEN:
+    telegram_app = Application.builder().token(TOKEN).build()
+else:
+    print("WARNING: TELEGRAM_BOT_TOKEN is not set.")
+    print("Telegram bot will be disabled.")
 
-# ==============================
-# Load CNN Model
-# ==============================
+# ==========================================
+# CNN MODEL
+# ==========================================
 
-MODEL_PATH = "models/skin_disease_cnn_v2.keras"
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "models",
+    "skin_disease_cnn_v2.keras"
+)
+
+print("Loading model from:")
+print(MODEL_PATH)
+
+if not os.path.exists(MODEL_PATH):
+    raise FileNotFoundError(
+        f"Model file not found: {MODEL_PATH}"
+    )
 
 model = tf.keras.models.load_model(MODEL_PATH)
 
+print("CNN model loaded successfully!")
+
 IMG_SIZE = (224, 224)
 
-
-# ==============================
-# Disease Classes
-# ==============================
+# ==========================================
+# DISEASE CLASSES
+# ==========================================
 
 class_names = [
     "Eczema",
@@ -56,21 +81,22 @@ class_names = [
     "Tinea / Fungal Infection"
 ]
 
+# ==========================================
+# UPLOAD FOLDER
+# ==========================================
 
-# ==============================
-# Website Upload Folder
-# ==============================
-
-UPLOAD_FOLDER = "sample_data"
+UPLOAD_FOLDER = os.path.join(
+    BASE_DIR,
+    "sample_data"
+)
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-
-# ==============================
-# Website
-# ==============================
+# ==========================================
+# WEBSITE
+# ==========================================
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -81,13 +107,18 @@ def home():
 
     if request.method == "POST":
 
-        description = request.form.get("description", "")
+        description = request.form.get(
+            "description",
+            ""
+        )
 
         image = request.files.get("image")
 
         if image and image.filename:
 
-            filename = secure_filename(image.filename)
+            filename = secure_filename(
+                image.filename
+            )
 
             image_path = os.path.join(
                 app.config["UPLOAD_FOLDER"],
@@ -96,31 +127,44 @@ def home():
 
             image.save(image_path)
 
-            img = tf.keras.utils.load_img(
-                image_path,
-                target_size=IMG_SIZE
-            )
+            try:
 
-            img_array = tf.keras.utils.img_to_array(img)
+                img = tf.keras.utils.load_img(
+                    image_path,
+                    target_size=IMG_SIZE
+                )
 
-            img_array = np.expand_dims(
-                img_array,
-                axis=0
-            )
+                img_array = tf.keras.utils.img_to_array(
+                    img
+                )
 
-            predictions = model.predict(
-                img_array,
-                verbose=0
-            )
+                img_array = np.expand_dims(
+                    img_array,
+                    axis=0
+                )
 
-            index = np.argmax(predictions[0])
+                predictions = model.predict(
+                    img_array,
+                    verbose=0
+                )
 
-            prediction = class_names[index]
+                index = int(
+                    np.argmax(predictions[0])
+                )
 
-            confidence = round(
-                float(predictions[0][index]) * 100,
-                2
-            )
+                prediction = class_names[index]
+
+                confidence = round(
+                    float(predictions[0][index]) * 100,
+                    2
+                )
+
+            except Exception as e:
+
+                print("Prediction Error:", e)
+
+                prediction = "Unable to process image"
+                confidence = None
 
     return render_template(
         "index.html",
@@ -130,11 +174,14 @@ def home():
     )
 
 
-# ==============================
-# Telegram /start
-# ==============================
+# ==========================================
+# TELEGRAM /START
+# ==========================================
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
 
     await update.message.reply_text(
         "👋 Welcome to Skin Disease Detection Bot!\n\n"
@@ -144,9 +191,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# ==============================
-# Telegram /help
-# ==============================
+# ==========================================
+# TELEGRAM /HELP
+# ==========================================
 
 async def help_command(
     update: Update,
@@ -162,9 +209,9 @@ async def help_command(
     )
 
 
-# ==============================
-# Telegram /about
-# ==============================
+# ==========================================
+# TELEGRAM /ABOUT
+# ==========================================
 
 async def about_command(
     update: Update,
@@ -183,9 +230,9 @@ async def about_command(
     )
 
 
-# ==============================
-# Telegram Photo
-# ==============================
+# ==========================================
+# TELEGRAM PHOTO
+# ==========================================
 
 async def handle_photo(
     update: Update,
@@ -222,9 +269,9 @@ async def handle_photo(
             img
         )
 
-        img_array = tf.expand_dims(
+        img_array = np.expand_dims(
             img_array,
-            0
+            axis=0
         )
 
         predictions = model.predict(
@@ -232,12 +279,12 @@ async def handle_photo(
             verbose=0
         )
 
-        predicted_index = np.argmax(
-            predictions[0]
+        predicted_index = int(
+            np.argmax(predictions[0])
         )
 
         confidence = (
-            np.max(predictions[0]) * 100
+            float(np.max(predictions[0])) * 100
         )
 
         disease = class_names[
@@ -261,49 +308,84 @@ async def handle_photo(
         )
 
 
-# ==============================
-# Telegram Handlers
-# ==============================
+# ==========================================
+# TELEGRAM HANDLERS
+# ==========================================
 
-telegram_app.add_handler(
-    CommandHandler("start", start)
-)
+if telegram_app:
 
-telegram_app.add_handler(
-    CommandHandler("help", help_command)
-)
-
-telegram_app.add_handler(
-    CommandHandler("about", about_command)
-)
-
-telegram_app.add_handler(
-    MessageHandler(filters.PHOTO, handle_photo)
-)
-
-
-# ==============================
-# Telegram Webhook
-# ==============================
-
-@app.route("/telegram-webhook", methods=["POST"])
-async def telegram_webhook():
-
-    data = request.get_json(force=True)
-
-    update = Update.de_json(
-        data,
-        telegram_app.bot
+    telegram_app.add_handler(
+        CommandHandler(
+            "start",
+            start
+        )
     )
 
-    await telegram_app.process_update(update)
+    telegram_app.add_handler(
+        CommandHandler(
+            "help",
+            help_command
+        )
+    )
 
-    return "OK"
+    telegram_app.add_handler(
+        CommandHandler(
+            "about",
+            about_command
+        )
+    )
+
+    telegram_app.add_handler(
+        MessageHandler(
+            filters.PHOTO,
+            handle_photo
+        )
+    )
 
 
-# ==============================
-# Health Check
-# ==============================
+# ==========================================
+# TELEGRAM WEBHOOK
+# ==========================================
+
+@app.route(
+    "/telegram-webhook",
+    methods=["POST"]
+)
+async def telegram_webhook():
+
+    if telegram_app is None:
+        return "Telegram bot is not configured", 503
+
+    try:
+
+        data = request.get_json(
+            force=True
+        )
+
+        update = Update.de_json(
+            data,
+            telegram_app.bot
+        )
+
+        await telegram_app.process_update(
+            update
+        )
+
+        return "OK"
+
+    except Exception as e:
+
+        print(
+            "Webhook Error:",
+            e
+        )
+
+        return "Webhook error", 500
+
+
+# ==========================================
+# HEALTH CHECK
+# ==========================================
 
 @app.route("/health")
 def health():
@@ -311,18 +393,20 @@ def health():
     return "Skin Disease AI is running!"
 
 
-# ==============================
-# Run
-# ==============================
+# ==========================================
+# RUN
+# ==========================================
 
 if __name__ == "__main__":
 
+    port = int(
+        os.environ.get(
+            "PORT",
+            5000
+        )
+    )
+
     app.run(
         host="0.0.0.0",
-        port=int(
-            os.environ.get(
-                "PORT",
-                5000
-            )
-        )
+        port=port
     )
