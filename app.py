@@ -44,81 +44,104 @@ else:
     print("Telegram bot will be disabled.")
 
 # =========================================================
-# CNN MODEL
+# HUGGING FACE MODEL
 # =========================================================
 
-# Hugging Face repository
 HF_MODEL_URL = (
-    "https://huggingface.co/keerthana1780/"
-    "skin-disease-cnn/resolve/main/"
+    "https://huggingface.co/"
+    "keerthana1780/skin-disease-cnn/"
+    "resolve/main/"
     "models/skin_disease_cnn_v2.keras"
 )
 
-# Railway/Render temporary storage
 MODEL_PATH = "/tmp/skin_disease_cnn_v2.keras"
 
 
 def download_model():
-    """Download CNN model from Hugging Face."""
 
-    if os.path.isfile(MODEL_PATH):
-        file_size = os.path.getsize(MODEL_PATH)
+    print("==========================================")
+    print("CHECKING CNN MODEL")
+    print("==========================================")
 
-        if file_size > 1000000:
-            print("CNN model already downloaded.")
-            print("Model size:", file_size, "bytes")
+    if os.path.exists(MODEL_PATH):
+
+        size = os.path.getsize(MODEL_PATH)
+
+        if size > 1_000_000:
+
+            print(
+                "Model already exists."
+            )
+
+            print(
+                "Model size:",
+                size,
+                "bytes"
+            )
+
             return
 
-        print("Existing model file is too small.")
-        os.remove(MODEL_PATH)
+        else:
 
-    print("==========================================")
-    print("DOWNLOADING CNN MODEL")
-    print("==========================================")
-    print(HF_MODEL_URL)
+            os.remove(MODEL_PATH)
+
+    print(
+        "Downloading CNN model from Hugging Face..."
+    )
+
+    print(
+        HF_MODEL_URL
+    )
 
     try:
+
         request = urllib.request.Request(
             HF_MODEL_URL,
             headers={
-                "User-Agent": "skin-disease-cnn-app"
+                "User-Agent": "Skin-Disease-AI"
             }
         )
 
         with urllib.request.urlopen(
             request,
-            timeout=600
+            timeout=900
         ) as response:
 
             with open(
                 MODEL_PATH,
                 "wb"
-            ) as output_file:
+            ) as output:
 
                 while True:
-                    chunk = response.read(1024 * 1024)
+
+                    chunk = response.read(
+                        1024 * 1024
+                    )
 
                     if not chunk:
                         break
 
-                    output_file.write(chunk)
+                    output.write(chunk)
 
-        file_size = os.path.getsize(
+        size = os.path.getsize(
             MODEL_PATH
         )
 
         print(
             "Downloaded model size:",
-            file_size,
+            size,
             "bytes"
         )
 
-        if file_size < 1000000:
+        if size < 1_000_000:
+
             raise RuntimeError(
                 "Downloaded model file is too small."
             )
 
-        print("CNN model downloaded successfully.")
+        print(
+            "CNN model downloaded successfully!"
+        )
 
     except Exception as e:
 
@@ -127,25 +150,34 @@ def download_model():
             repr(e)
         )
 
-        if os.path.exists(MODEL_PATH):
-            os.remove(MODEL_PATH)
+        if os.path.exists(
+            MODEL_PATH
+        ):
+            os.remove(
+                MODEL_PATH
+            )
 
         raise
 
 
-# Download model before loading
+# =========================================================
+# DOWNLOAD MODEL
+# =========================================================
+
 download_model()
 
 # =========================================================
-# LOAD CNN MODEL
+# LOAD MODEL
 # =========================================================
 
 print("==========================================")
 print("LOADING CNN MODEL")
 print("==========================================")
 
-print("Model path:")
-print(MODEL_PATH)
+print(
+    "Model path:",
+    MODEL_PATH
+)
 
 try:
 
@@ -153,7 +185,9 @@ try:
         MODEL_PATH
     )
 
-    print("CNN model loaded successfully!")
+    print(
+        "CNN model loaded successfully!"
+    )
 
 except Exception as e:
 
@@ -166,10 +200,13 @@ except Exception as e:
 
 
 # =========================================================
-# IMAGE SIZE
+# IMAGE SETTINGS
 # =========================================================
 
-IMG_SIZE = (224, 224)
+IMG_SIZE = (
+    224,
+    224
+)
 
 # =========================================================
 # DISEASE CLASSES
@@ -202,7 +239,9 @@ os.makedirs(
     exist_ok=True
 )
 
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config[
+    "UPLOAD_FOLDER"
+] = UPLOAD_FOLDER
 
 # =========================================================
 # IMAGE PREDICTION FUNCTION
@@ -229,17 +268,21 @@ def predict_image(image_path):
         verbose=0
     )
 
-    index = int(
+    predicted_index = int(
         np.argmax(
             predictions[0]
         )
     )
 
-    disease = class_names[index]
+    disease = class_names[
+        predicted_index
+    ]
 
     confidence = (
         float(
-            predictions[0][index]
+            predictions[0][
+                predicted_index
+            ]
         ) * 100
     )
 
@@ -247,17 +290,22 @@ def predict_image(image_path):
 
 
 # =========================================================
-# WEBSITE
+# WEBSITE HOME
 # =========================================================
 
 @app.route(
     "/",
-    methods=["GET", "POST"]
+    methods=[
+        "GET",
+        "POST"
+    ]
 )
 def home():
 
     prediction = None
+
     confidence = None
+
     description = ""
 
     if request.method == "POST":
@@ -278,7 +326,9 @@ def home():
             )
 
             image_path = os.path.join(
-                app.config["UPLOAD_FOLDER"],
+                app.config[
+                    "UPLOAD_FOLDER"
+                ],
                 filename
             )
 
@@ -288,10 +338,11 @@ def home():
 
             try:
 
-                prediction, confidence = (
-                    predict_image(
-                        image_path
-                    )
+                (
+                    prediction,
+                    confidence
+                ) = predict_image(
+                    image_path
                 )
 
             except Exception as e:
@@ -401,8 +452,10 @@ async def handle_photo(
             image_path
         )
 
-        disease, confidence = predict_image(
-            image_path
+        disease, confidence = (
+            predict_image(
+                image_path
+            )
         )
 
         await update.message.reply_text(
@@ -511,14 +564,18 @@ async def telegram_webhook():
 # HEALTH CHECK
 # =========================================================
 
-@app.route("/health")
+@app.route(
+    "/health"
+)
 def health():
 
-    return "Skin Disease AI is running!"
+    return (
+        "Skin Disease AI is running!"
+    )
 
 
 # =========================================================
-# RUN
+# RUN APPLICATION
 # =========================================================
 
 if __name__ == "__main__":
