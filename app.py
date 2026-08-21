@@ -1,4 +1,6 @@
+```python
 import os
+import urllib.request
 import numpy as np
 import tensorflow as tf
 
@@ -14,21 +16,21 @@ from telegram.ext import (
     filters,
 )
 
-# ==========================================
+# =========================================================
 # BASE DIRECTORY
-# ==========================================
+# =========================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ==========================================
+# =========================================================
 # FLASK APP
-# ==========================================
+# =========================================================
 
 app = Flask(__name__)
 
-# ==========================================
+# =========================================================
 # TELEGRAM BOT
-# ==========================================
+# =========================================================
 
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
@@ -36,37 +38,142 @@ telegram_app = None
 
 if TOKEN:
     telegram_app = Application.builder().token(TOKEN).build()
+    print("Telegram bot token found.")
 else:
     print("WARNING: TELEGRAM_BOT_TOKEN is not set.")
     print("Telegram bot will be disabled.")
 
-# ==========================================
+# =========================================================
 # CNN MODEL
-# ==========================================
+# =========================================================
 
-MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "models",
-    "skin_disease_cnn_v2.keras"
+# Hugging Face repository
+HF_MODEL_URL = (
+    "https://huggingface.co/keerthana1780/"
+    "skin-disease-cnn/resolve/main/"
+    "models/skin_disease_cnn_v2.keras"
 )
 
-print("Loading model from:")
+# Railway/Render temporary storage
+MODEL_PATH = "/tmp/skin_disease_cnn_v2.keras"
+
+
+def download_model():
+    """Download CNN model from Hugging Face."""
+
+    if os.path.isfile(MODEL_PATH):
+        file_size = os.path.getsize(MODEL_PATH)
+
+        if file_size > 1000000:
+            print("CNN model already downloaded.")
+            print("Model size:", file_size, "bytes")
+            return
+
+        print("Existing model file is too small.")
+        os.remove(MODEL_PATH)
+
+    print("==========================================")
+    print("DOWNLOADING CNN MODEL")
+    print("==========================================")
+    print(HF_MODEL_URL)
+
+    try:
+        request = urllib.request.Request(
+            HF_MODEL_URL,
+            headers={
+                "User-Agent": "skin-disease-cnn-app"
+            }
+        )
+
+        with urllib.request.urlopen(
+            request,
+            timeout=600
+        ) as response:
+
+            with open(
+                MODEL_PATH,
+                "wb"
+            ) as output_file:
+
+                while True:
+                    chunk = response.read(1024 * 1024)
+
+                    if not chunk:
+                        break
+
+                    output_file.write(chunk)
+
+        file_size = os.path.getsize(
+            MODEL_PATH
+        )
+
+        print(
+            "Downloaded model size:",
+            file_size,
+            "bytes"
+        )
+
+        if file_size < 1000000:
+            raise RuntimeError(
+                "Downloaded model file is too small."
+            )
+
+        print("CNN model downloaded successfully.")
+
+    except Exception as e:
+
+        print(
+            "MODEL DOWNLOAD ERROR:",
+            repr(e)
+        )
+
+        if os.path.exists(MODEL_PATH):
+            os.remove(MODEL_PATH)
+
+        raise
+
+
+# Download model before loading
+download_model()
+
+# =========================================================
+# LOAD CNN MODEL
+# =========================================================
+
+print("==========================================")
+print("LOADING CNN MODEL")
+print("==========================================")
+
+print("Model path:")
 print(MODEL_PATH)
 
-if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError(
-        f"Model file not found: {MODEL_PATH}"
+try:
+
+    model = tf.keras.models.load_model(
+        MODEL_PATH
     )
 
-model = tf.keras.models.load_model(MODEL_PATH)
+    print("CNN model loaded successfully!")
 
-print("CNN model loaded successfully!")
+except Exception as e:
+
+    print(
+        "MODEL LOAD ERROR:",
+        repr(e)
+    )
+
+    raise
+
+
+# =========================================================
+# IMAGE SIZE
+# =========================================================
 
 IMG_SIZE = (224, 224)
 
-# ==========================================
+# =========================================================
 # DISEASE CLASSES
-# ==========================================
+# =========================================================
 
 class_names = [
     "Eczema",
@@ -81,24 +188,72 @@ class_names = [
     "Tinea / Fungal Infection"
 ]
 
-# ==========================================
+# =========================================================
 # UPLOAD FOLDER
-# ==========================================
+# =========================================================
 
 UPLOAD_FOLDER = os.path.join(
     BASE_DIR,
     "sample_data"
 )
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(
+    UPLOAD_FOLDER,
+    exist_ok=True
+)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# ==========================================
-# WEBSITE
-# ==========================================
+# =========================================================
+# IMAGE PREDICTION FUNCTION
+# =========================================================
 
-@app.route("/", methods=["GET", "POST"])
+def predict_image(image_path):
+
+    img = tf.keras.utils.load_img(
+        image_path,
+        target_size=IMG_SIZE
+    )
+
+    img_array = tf.keras.utils.img_to_array(
+        img
+    )
+
+    img_array = np.expand_dims(
+        img_array,
+        axis=0
+    )
+
+    predictions = model.predict(
+        img_array,
+        verbose=0
+    )
+
+    index = int(
+        np.argmax(
+            predictions[0]
+        )
+    )
+
+    disease = class_names[index]
+
+    confidence = (
+        float(
+            predictions[0][index]
+        ) * 100
+    )
+
+    return disease, confidence
+
+
+# =========================================================
+# WEBSITE
+# =========================================================
+
+@app.route(
+    "/",
+    methods=["GET", "POST"]
+)
 def home():
 
     prediction = None
@@ -112,7 +267,9 @@ def home():
             ""
         )
 
-        image = request.files.get("image")
+        image = request.files.get(
+            "image"
+        )
 
         if image and image.filename:
 
@@ -125,45 +282,29 @@ def home():
                 filename
             )
 
-            image.save(image_path)
+            image.save(
+                image_path
+            )
 
             try:
 
-                img = tf.keras.utils.load_img(
-                    image_path,
-                    target_size=IMG_SIZE
-                )
-
-                img_array = tf.keras.utils.img_to_array(
-                    img
-                )
-
-                img_array = np.expand_dims(
-                    img_array,
-                    axis=0
-                )
-
-                predictions = model.predict(
-                    img_array,
-                    verbose=0
-                )
-
-                index = int(
-                    np.argmax(predictions[0])
-                )
-
-                prediction = class_names[index]
-
-                confidence = round(
-                    float(predictions[0][index]) * 100,
-                    2
+                prediction, confidence = (
+                    predict_image(
+                        image_path
+                    )
                 )
 
             except Exception as e:
 
-                print("Prediction Error:", e)
+                print(
+                    "Prediction Error:",
+                    repr(e)
+                )
 
-                prediction = "Unable to process image"
+                prediction = (
+                    "Unable to process image"
+                )
+
                 confidence = None
 
     return render_template(
@@ -174,9 +315,9 @@ def home():
     )
 
 
-# ==========================================
+# =========================================================
 # TELEGRAM /START
-# ==========================================
+# =========================================================
 
 async def start(
     update: Update,
@@ -191,9 +332,9 @@ async def start(
     )
 
 
-# ==========================================
+# =========================================================
 # TELEGRAM /HELP
-# ==========================================
+# =========================================================
 
 async def help_command(
     update: Update,
@@ -209,9 +350,9 @@ async def help_command(
     )
 
 
-# ==========================================
+# =========================================================
 # TELEGRAM /ABOUT
-# ==========================================
+# =========================================================
 
 async def about_command(
     update: Update,
@@ -230,9 +371,9 @@ async def about_command(
     )
 
 
-# ==========================================
+# =========================================================
 # TELEGRAM PHOTO
-# ==========================================
+# =========================================================
 
 async def handle_photo(
     update: Update,
@@ -260,36 +401,9 @@ async def handle_photo(
             image_path
         )
 
-        img = tf.keras.utils.load_img(
-            image_path,
-            target_size=IMG_SIZE
+        disease, confidence = predict_image(
+            image_path
         )
-
-        img_array = tf.keras.utils.img_to_array(
-            img
-        )
-
-        img_array = np.expand_dims(
-            img_array,
-            axis=0
-        )
-
-        predictions = model.predict(
-            img_array,
-            verbose=0
-        )
-
-        predicted_index = int(
-            np.argmax(predictions[0])
-        )
-
-        confidence = (
-            float(np.max(predictions[0])) * 100
-        )
-
-        disease = class_names[
-            predicted_index
-        ]
 
         await update.message.reply_text(
             f"🔍 Prediction Result\n\n"
@@ -301,16 +415,19 @@ async def handle_photo(
 
     except Exception as e:
 
-        print("Telegram Error:", e)
+        print(
+            "Telegram Error:",
+            repr(e)
+        )
 
         await update.message.reply_text(
             "❌ Sorry, I couldn't process this image."
         )
 
 
-# ==========================================
+# =========================================================
 # TELEGRAM HANDLERS
-# ==========================================
+# =========================================================
 
 if telegram_app:
 
@@ -343,9 +460,9 @@ if telegram_app:
     )
 
 
-# ==========================================
+# =========================================================
 # TELEGRAM WEBHOOK
-# ==========================================
+# =========================================================
 
 @app.route(
     "/telegram-webhook",
@@ -354,7 +471,11 @@ if telegram_app:
 async def telegram_webhook():
 
     if telegram_app is None:
-        return "Telegram bot is not configured", 503
+
+        return (
+            "Telegram bot is not configured",
+            503
+        )
 
     try:
 
@@ -377,15 +498,18 @@ async def telegram_webhook():
 
         print(
             "Webhook Error:",
-            e
+            repr(e)
         )
 
-        return "Webhook error", 500
+        return (
+            "Webhook error",
+            500
+        )
 
 
-# ==========================================
+# =========================================================
 # HEALTH CHECK
-# ==========================================
+# =========================================================
 
 @app.route("/health")
 def health():
@@ -393,9 +517,9 @@ def health():
     return "Skin Disease AI is running!"
 
 
-# ==========================================
+# =========================================================
 # RUN
-# ==========================================
+# =========================================================
 
 if __name__ == "__main__":
 
@@ -410,3 +534,4 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=port
     )
+```
