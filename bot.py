@@ -16,7 +16,7 @@ load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-MODEL_PATH = "models/skin_disease_cnn.keras"
+MODEL_PATH = "models/skin_disease_cnn_v2.keras"
 IMG_SIZE = (224, 224)
 
 class_names = [
