@@ -6,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 from flask import Flask, render_template, request
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from werkzeug.utils import secure_filename
 
 # =========================================================
@@ -106,7 +107,8 @@ def setup_telegram_webhook():
                 "url": WEBHOOK_URL,
                 "allowed_updates": json.dumps(
                     [
-                        "message"
+                        "message",
+                        "callback_query"
                     ]
                 )
             }
@@ -513,6 +515,48 @@ def home():
 # TELEGRAM SEND MESSAGE
 # =========================================================
 
+def send_telegram_menu(chat_id):
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "📖 How to Use",
+                callback_data="howto"
+            ),
+            InlineKeyboardButton(
+                "🧠 About Model",
+                callback_data="model"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "⚠️ Disclaimer",
+                callback_data="disclaimer"
+            ),
+            InlineKeyboardButton(
+                "ℹ️ About Project",
+                callback_data="about"
+            )
+        ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(
+        keyboard
+    )
+
+    telegram_api(
+        "sendMessage",
+        {
+            "chat_id": chat_id,
+            "text": (
+                "🤖 Skin Disease AI Bot\n\n"
+                "Choose an option below:"
+            ),
+            "reply_markup": json.dumps(
+                reply_markup.to_dict()
+            )
+        }
+    )
 def send_telegram_message(
     chat_id,
     text
@@ -573,6 +617,51 @@ def download_telegram_photo(
 # TELEGRAM WEBHOOK
 # =========================================================
 
+def handle_button(chat_id, callback_data):
+
+    if callback_data == "howto":
+
+        send_telegram_message(
+            chat_id,
+            "📖 How to Use\n\n"
+            "1️⃣ Send a clear skin image.\n"
+            "2️⃣ Wait while the AI analyzes it.\n"
+            "3️⃣ The bot will show the predicted class and confidence.\n\n"
+            "⚠️ Use the result only as an AI prediction."
+        )
+
+    elif callback_data == "model":
+
+        send_telegram_message(
+            chat_id,
+            "🧠 About the Model\n\n"
+            "🤖 Model: Convolutional Neural Network (CNN)\n"
+            "🖼️ Image Size: 224 × 224 pixels\n"
+            "📊 Classes: 10\n\n"
+            "The model analyzes the uploaded image and "
+            "returns its predicted class."
+        )
+
+    elif callback_data == "disclaimer":
+
+        send_telegram_message(
+            chat_id,
+            "⚠️ Disclaimer\n\n"
+            "This bot provides an AI model prediction only.\n\n"
+            "It is NOT a medical diagnosis and should not "
+            "be used as a substitute for professional medical advice."
+        )
+
+    elif callback_data == "about":
+
+        send_telegram_message(
+            chat_id,
+            "ℹ️ About Project\n\n"
+            "🩺 Skin Disease Detection AI\n\n"
+            "This project uses a CNN-based deep learning "
+            "model to classify skin images into 10 categories.\n\n"
+            "🤖 Built as an AI/ML project."
+        )
 @app.route(
     "/telegram-webhook",
     methods=["POST"]
@@ -595,6 +684,46 @@ def telegram_webhook():
         print(
             "Telegram update received."
         )
+
+        # =================================================
+        # INLINE BUTTON CALLBACK
+        # =================================================
+
+        callback_query = data.get(
+            "callback_query"
+        )
+
+        if callback_query:
+
+            callback_chat_id = callback_query.get(
+                "message",
+                {}
+            ).get(
+                "chat",
+                {}
+            ).get(
+                "id"
+            )
+
+            callback_data = callback_query.get(
+                "data"
+            )
+
+            if callback_chat_id and callback_data:
+
+                handle_button(
+                    callback_chat_id,
+                    callback_data
+                )
+
+            telegram_api(
+                "answerCallbackQuery",
+                {
+                    "callback_query_id": callback_query["id"]
+                }
+            )
+
+            return "OK"
 
         message = data.get(
             "message"
@@ -628,13 +757,7 @@ def telegram_webhook():
 
         if text == "/start":
 
-            send_telegram_message(
-                chat_id,
-                "👋 Welcome to Skin Disease Detection Bot!\n\n"
-                "📸 Send a skin image to get an AI prediction.\n\n"
-                "📌 Use /help for commands.\n"
-                "ℹ️ Use /about for project information."
-            )
+            send_telegram_menu(chat_id)
 
             return "OK"
 
