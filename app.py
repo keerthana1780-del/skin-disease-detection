@@ -1,19 +1,12 @@
 import os
 import urllib.request
+import urllib.parse
+import json
 import numpy as np
 import tensorflow as tf
 
 from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
-
-from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    ContextTypes,
-    filters,
-)
 
 # =========================================================
 # BASE DIRECTORY
@@ -33,14 +26,107 @@ app = Flask(__name__)
 
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
-telegram_app = None
+RAILWAY_DOMAIN = os.environ.get(
+    "RAILWAY_PUBLIC_DOMAIN",
+    "skin-disease-detection-production.up.railway.app"
+)
+
+WEBHOOK_URL = (
+    f"https://{RAILWAY_DOMAIN}/telegram-webhook"
+)
 
 if TOKEN:
-    telegram_app = Application.builder().token(TOKEN).build()
     print("Telegram bot token found.")
+    print("Telegram webhook URL:")
+    print(WEBHOOK_URL)
 else:
     print("WARNING: TELEGRAM_BOT_TOKEN is not set.")
     print("Telegram bot will be disabled.")
+
+
+# =========================================================
+# TELEGRAM API HELPER
+# =========================================================
+
+def telegram_api(method, data=None):
+
+    if not TOKEN:
+        raise RuntimeError(
+            "TELEGRAM_BOT_TOKEN is not configured."
+        )
+
+    url = (
+        f"https://api.telegram.org/bot{TOKEN}/{method}"
+    )
+
+    if data is None:
+        data = {}
+
+    encoded_data = urllib.parse.urlencode(
+        data
+    ).encode("utf-8")
+
+    req = urllib.request.Request(
+        url,
+        data=encoded_data,
+        method="POST"
+    )
+
+    with urllib.request.urlopen(
+        req,
+        timeout=60
+    ) as response:
+
+        result = json.loads(
+            response.read().decode("utf-8")
+        )
+
+    if not result.get("ok"):
+        raise RuntimeError(
+            f"Telegram API error: {result}"
+        )
+
+    return result
+
+
+# =========================================================
+# SET TELEGRAM WEBHOOK
+# =========================================================
+
+def setup_telegram_webhook():
+
+    if not TOKEN:
+        return
+
+    try:
+
+        result = telegram_api(
+            "setWebhook",
+            {
+                "url": WEBHOOK_URL,
+                "allowed_updates": json.dumps(
+                    [
+                        "message"
+                    ]
+                )
+            }
+        )
+
+        print(
+            "Telegram webhook configured successfully."
+        )
+
+        print(
+            result
+        )
+
+    except Exception as e:
+
+        print(
+            "Telegram webhook setup error:",
+            repr(e)
+        )
+
 
 # =========================================================
 # HUGGING FACE MODEL
@@ -53,15 +139,11 @@ HF_MODEL_URL = (
     "models/skin_disease_cnn_v2.keras"
 )
 
-# IMPORTANT:
-# Do NOT use /app/models/... here.
-# Render will download the model to /tmp.
-
 MODEL_PATH = "/tmp/skin_disease_cnn_v2.keras"
 
 
 # =========================================================
-# DOWNLOAD MODEL FROM HUGGING FACE
+# DOWNLOAD MODEL
 # =========================================================
 
 def download_model():
@@ -70,20 +152,37 @@ def download_model():
     print("CHECKING CNN MODEL")
     print("==========================================")
 
-    # If model already exists, use it
     if os.path.exists(MODEL_PATH):
 
-        size = os.path.getsize(MODEL_PATH)
+        size = os.path.getsize(
+            MODEL_PATH
+        )
 
-        print("Existing model found.")
-        print("Model size:", size, "bytes")
+        print(
+            "Existing model found."
+        )
+
+        print(
+            "Model size:",
+            size,
+            "bytes"
+        )
 
         if size > 100_000_000:
-            print("Model already downloaded.")
+
+            print(
+                "Model already downloaded."
+            )
+
             return
 
-        print("Existing model is too small.")
-        print("Removing corrupted model...")
+        print(
+            "Existing model is too small."
+        )
+
+        print(
+            "Removing corrupted model..."
+        )
 
         try:
             os.remove(MODEL_PATH)
@@ -94,12 +193,17 @@ def download_model():
     print("DOWNLOADING CNN MODEL")
     print("==========================================")
 
-    print("Hugging Face URL:")
-    print(HF_MODEL_URL)
+    print(
+        "Hugging Face URL:"
+    )
+
+    print(
+        HF_MODEL_URL
+    )
 
     try:
 
-        request = urllib.request.Request(
+        req = urllib.request.Request(
             HF_MODEL_URL,
             headers={
                 "User-Agent": "Skin-Disease-AI"
@@ -107,7 +211,7 @@ def download_model():
         )
 
         with urllib.request.urlopen(
-            request,
+            req,
             timeout=900
         ) as response:
 
@@ -125,14 +229,19 @@ def download_model():
                     if not chunk:
                         break
 
-                    output.write(chunk)
+                    output.write(
+                        chunk
+                    )
 
         size = os.path.getsize(
             MODEL_PATH
         )
 
-        print("Downloaded model size:")
-        print(size, "bytes")
+        print(
+            "Downloaded model size:",
+            size,
+            "bytes"
+        )
 
         if size < 100_000_000:
 
@@ -141,7 +250,9 @@ def download_model():
             )
 
         print("==========================================")
-        print("CNN MODEL DOWNLOADED SUCCESSFULLY")
+        print(
+            "CNN MODEL DOWNLOADED SUCCESSFULLY"
+        )
         print("==========================================")
 
     except Exception as e:
@@ -150,12 +261,18 @@ def download_model():
         print("MODEL DOWNLOAD ERROR")
         print("==========================================")
 
-        print(repr(e))
+        print(
+            repr(e)
+        )
 
-        if os.path.exists(MODEL_PATH):
+        if os.path.exists(
+            MODEL_PATH
+        ):
 
             try:
-                os.remove(MODEL_PATH)
+                os.remove(
+                    MODEL_PATH
+                )
             except Exception:
                 pass
 
@@ -177,10 +294,14 @@ print("==========================================")
 print("LOADING CNN MODEL")
 print("==========================================")
 
-print("Model path:")
-print(MODEL_PATH)
+print(
+    "Model path:",
+    MODEL_PATH
+)
 
-if not os.path.exists(MODEL_PATH):
+if not os.path.exists(
+    MODEL_PATH
+):
 
     raise FileNotFoundError(
         "CNN model was not downloaded."
@@ -193,7 +314,9 @@ try:
     )
 
     print("==========================================")
-    print("CNN MODEL LOADED SUCCESSFULLY")
+    print(
+        "CNN MODEL LOADED SUCCESSFULLY"
+    )
     print("==========================================")
 
 except Exception as e:
@@ -202,7 +325,9 @@ except Exception as e:
     print("MODEL LOAD ERROR")
     print("==========================================")
 
-    print(repr(e))
+    print(
+        repr(e)
+    )
 
     raise
 
@@ -211,7 +336,10 @@ except Exception as e:
 # IMAGE SETTINGS
 # =========================================================
 
-IMG_SIZE = (224, 224)
+IMG_SIZE = (
+    224,
+    224
+)
 
 
 # =========================================================
@@ -257,14 +385,18 @@ os.makedirs(
     exist_ok=True
 )
 
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config[
+    "UPLOAD_FOLDER"
+] = UPLOAD_FOLDER
 
 
 # =========================================================
 # IMAGE PREDICTION
 # =========================================================
 
-def predict_image(image_path):
+def predict_image(
+    image_path
+):
 
     img = tf.keras.utils.load_img(
         image_path,
@@ -286,7 +418,9 @@ def predict_image(image_path):
     )
 
     predicted_index = int(
-        np.argmax(predictions[0])
+        np.argmax(
+            predictions[0]
+        )
     )
 
     disease = class_names[
@@ -315,9 +449,7 @@ def predict_image(image_path):
 def home():
 
     prediction = None
-
     confidence = None
-
     description = ""
 
     if request.method == "POST":
@@ -338,7 +470,9 @@ def home():
             )
 
             image_path = os.path.join(
-                app.config["UPLOAD_FOLDER"],
+                app.config[
+                    "UPLOAD_FOLDER"
+                ],
                 filename
             )
 
@@ -376,173 +510,63 @@ def home():
 
 
 # =========================================================
-# TELEGRAM /START
+# TELEGRAM SEND MESSAGE
 # =========================================================
 
-async def start(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
+def send_telegram_message(
+    chat_id,
+    text
 ):
 
-    await update.message.reply_text(
-
-        "👋 Welcome to Skin Disease Detection Bot!\n\n"
-
-        "📸 Send a skin image to get an AI prediction.\n\n"
-
-        "📌 Use /help for commands.\n"
-
-        "ℹ️ Use /about for project information."
-
+    return telegram_api(
+        "sendMessage",
+        {
+            "chat_id": chat_id,
+            "text": text
+        }
     )
 
 
 # =========================================================
-# TELEGRAM /HELP
+# TELEGRAM PHOTO DOWNLOAD
 # =========================================================
 
-async def help_command(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
+def download_telegram_photo(
+    file_id,
+    destination
 ):
 
-    await update.message.reply_text(
-
-        "📌 Available Commands:\n\n"
-
-        "/start - Start the bot\n"
-
-        "/help - Show available commands\n"
-
-        "/about - About the project\n\n"
-
-        "📸 Send a skin image to get a prediction."
-
+    result = telegram_api(
+        "getFile",
+        {
+            "file_id": file_id
+        }
     )
 
+    file_path = result[
+        "result"
+    ][
+        "file_path"
+    ]
 
-# =========================================================
-# TELEGRAM /ABOUT
-# =========================================================
-
-async def about_command(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    await update.message.reply_text(
-
-        "🩺 Skin Disease Detection Bot\n\n"
-
-        "🤖 CNN-based deep learning project "
-        "for skin image classification.\n\n"
-
-        "🧠 Model: CNN\n"
-
-        "🖼️ Image Size: 224 × 224\n"
-
-        "📊 Classes: 10\n\n"
-
-        "⚠️ This is an AI model prediction, "
-        "not a medical diagnosis."
-
+    download_url = (
+        f"https://api.telegram.org/file/"
+        f"bot{TOKEN}/{file_path}"
     )
 
+    with urllib.request.urlopen(
+        download_url,
+        timeout=120
+    ) as response:
 
-# =========================================================
-# TELEGRAM PHOTO
-# =========================================================
+        with open(
+            destination,
+            "wb"
+        ) as output:
 
-async def handle_photo(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    try:
-
-        await update.message.reply_text(
-            "🔍 Analyzing the image... Please wait."
-        )
-
-        photo = update.message.photo[-1]
-
-        file = await context.bot.get_file(
-            photo.file_id
-        )
-
-        image_path = os.path.join(
-            UPLOAD_FOLDER,
-            "telegram_image.jpg"
-        )
-
-        await file.download_to_drive(
-            image_path
-        )
-
-        disease, confidence = (
-            predict_image(
-                image_path
+            output.write(
+                response.read()
             )
-        )
-
-        await update.message.reply_text(
-
-            f"🔍 Prediction Result\n\n"
-
-            f"🦠 Disease: {disease}\n"
-
-            f"📊 Confidence: {confidence:.2f}%\n\n"
-
-            f"⚠️ This is an AI model prediction, "
-            f"not a medical diagnosis."
-
-        )
-
-    except Exception as e:
-
-        print(
-            "Telegram Error:",
-            repr(e)
-        )
-
-        await update.message.reply_text(
-            "❌ Sorry, I couldn't process this image."
-        )
-
-
-# =========================================================
-# TELEGRAM HANDLERS
-# =========================================================
-
-if telegram_app:
-
-    telegram_app.add_handler(
-        CommandHandler(
-            "start",
-            start
-        )
-    )
-
-    telegram_app.add_handler(
-        CommandHandler(
-            "help",
-            help_command
-        )
-    )
-
-    telegram_app.add_handler(
-        CommandHandler(
-            "about",
-            about_command
-        )
-    )
-
-    telegram_app.add_handler(
-        MessageHandler(
-            filters.PHOTO,
-            handle_photo
-        )
-    )
 
 
 # =========================================================
@@ -553,9 +577,9 @@ if telegram_app:
     "/telegram-webhook",
     methods=["POST"]
 )
-async def telegram_webhook():
+def telegram_webhook():
 
-    if telegram_app is None:
+    if not TOKEN:
 
         return (
             "Telegram bot is not configured",
@@ -568,23 +592,165 @@ async def telegram_webhook():
             force=True
         )
 
-        update = Update.de_json(
-            data,
-            telegram_app.bot
+        print(
+            "Telegram update received."
         )
 
-        await telegram_app.process_update(
-            update
+        message = data.get(
+            "message"
         )
+
+        if not message:
+
+            return "OK"
+
+        chat = message.get(
+            "chat",
+            {}
+        )
+
+        chat_id = chat.get(
+            "id"
+        )
+
+        if not chat_id:
+
+            return "OK"
+
+        # =================================================
+        # /start
+        # =================================================
+
+        text = message.get(
+            "text",
+            ""
+        )
+
+        if text == "/start":
+
+            send_telegram_message(
+                chat_id,
+                "👋 Welcome to Skin Disease Detection Bot!\n\n"
+                "📸 Send a skin image to get an AI prediction.\n\n"
+                "📌 Use /help for commands.\n"
+                "ℹ️ Use /about for project information."
+            )
+
+            return "OK"
+
+        # =================================================
+        # /help
+        # =================================================
+
+        if text == "/help":
+
+            send_telegram_message(
+                chat_id,
+                "📌 Available Commands:\n\n"
+                "/start - Start the bot\n"
+                "/help - Show available commands\n"
+                "/about - About the project\n\n"
+                "📸 Send a skin image to get a prediction."
+            )
+
+            return "OK"
+
+        # =================================================
+        # /about
+        # =================================================
+
+        if text == "/about":
+
+            send_telegram_message(
+                chat_id,
+                "🩺 Skin Disease Detection Bot\n\n"
+                "🤖 CNN-based deep learning project "
+                "for skin image classification.\n\n"
+                "🧠 Model: CNN\n"
+                "🖼️ Image Size: 224 × 224\n"
+                "📊 Classes: 10\n\n"
+                "⚠️ This is an AI model prediction, "
+                "not a medical diagnosis."
+            )
+
+            return "OK"
+
+        # =================================================
+        # PHOTO
+        # =================================================
+
+        if "photo" in message:
+
+            send_telegram_message(
+                chat_id,
+                "🔍 Analyzing the image... Please wait."
+            )
+
+            photo_list = message[
+                "photo"
+            ]
+
+            photo = photo_list[
+                -1
+            ]
+
+            file_id = photo[
+                "file_id"
+            ]
+
+            image_path = os.path.join(
+                UPLOAD_FOLDER,
+                "telegram_image.jpg"
+            )
+
+            download_telegram_photo(
+                file_id,
+                image_path
+            )
+
+            disease, confidence = (
+                predict_image(
+                    image_path
+                )
+            )
+
+            send_telegram_message(
+                chat_id,
+                (
+                    "🔍 Prediction Result\n\n"
+                    f"🦠 Disease: {disease}\n"
+                    f"📊 Confidence: {confidence:.2f}%\n\n"
+                    "⚠️ This is an AI model prediction, "
+                    "not a medical diagnosis."
+                )
+            )
+
+            return "OK"
 
         return "OK"
 
     except Exception as e:
 
         print(
-            "Webhook Error:",
+            "Telegram Webhook Error:",
             repr(e)
         )
+
+        try:
+
+            if chat_id:
+
+                send_telegram_message(
+                    chat_id,
+                    "❌ Sorry, I couldn't process this request."
+                )
+
+        except Exception as send_error:
+
+            print(
+                "Telegram error message failed:",
+                repr(send_error)
+            )
 
         return (
             "Webhook error",
@@ -596,14 +762,27 @@ async def telegram_webhook():
 # HEALTH CHECK
 # =========================================================
 
-@app.route("/health")
+@app.route(
+    "/health"
+)
 def health():
 
-    return "Skin Disease AI is running!"
+    return (
+        "Skin Disease AI is running!"
+    )
 
 
 # =========================================================
-# RUN APPLICATION
+# SET WEBHOOK WHEN APP STARTS
+# =========================================================
+
+if TOKEN:
+
+    setup_telegram_webhook()
+
+
+# =========================================================
+# RUN APPLICATION LOCALLY
 # =========================================================
 
 if __name__ == "__main__":
