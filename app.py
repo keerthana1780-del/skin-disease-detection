@@ -413,17 +413,37 @@ def predict_image(image_path):
 def get_guidance(disease, confidence):
 
     if confidence >= 70:
-        guidance_level = "Higher AI confidence — professional review is recommended if concerned."
+
+        guidance_level = (
+            "Higher AI confidence — professional review "
+            "is recommended if concerned."
+        )
+
     elif confidence >= 40:
-        guidance_level = "Medium AI confidence — consider professional evaluation."
+
+        guidance_level = (
+            "Medium AI confidence — consider "
+            "professional evaluation."
+        )
+
     else:
-        guidance_level = "Low AI confidence — the image may be difficult for the model to classify."
+
+        guidance_level = (
+            "Low AI confidence — the image may be "
+            "difficult for the model to classify."
+        )
 
     common = [
+
         "Keep the affected area clean and avoid unnecessary irritation.",
+
         "Avoid scratching or picking the affected skin.",
+
         "Monitor the area for changes in appearance or symptoms.",
-        "If the concern persists, changes, or worries you, consult a qualified healthcare professional."
+
+        "If the concern persists, changes, or worries you, "
+        "consult a qualified healthcare professional."
+
     ]
 
     disease_lower = disease.lower()
@@ -432,14 +452,16 @@ def get_guidance(disease, confidence):
 
         common.insert(
             0,
-            "Use gentle, fragrance-free skin care products if they are suitable for you."
+            "Use gentle, fragrance-free skin care products "
+            "if they are suitable for you."
         )
 
     elif "atopic dermatitis" in disease_lower:
 
         common.insert(
             0,
-            "Avoid known skin irritants and use gentle, fragrance-free skin care."
+            "Avoid known skin irritants and use gentle, "
+            "fragrance-free skin care."
         )
 
     elif "fungal" in disease_lower:
@@ -463,7 +485,10 @@ def get_guidance(disease, confidence):
 
         common.insert(
             0,
-            "Because this AI result concerns a potentially serious skin condition, seek professional medical evaluation rather than relying on the AI result."
+            "Because this AI result concerns a potentially "
+            "serious skin condition, seek professional "
+            "medical evaluation rather than relying on "
+            "the AI result."
         )
 
     return guidance_level, common
@@ -783,8 +808,10 @@ def send_voice_report(
 
         if confidence >= 70:
             confidence_text = "high"
+
         elif confidence >= 40:
             confidence_text = "medium"
+
         else:
             confidence_text = "low"
 
