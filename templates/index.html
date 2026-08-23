@@ -156,6 +156,12 @@
             margin-bottom: 8px;
         }
 
+        .optional {
+            font-size: 13px;
+            font-weight: normal;
+            color: #777;
+        }
+
         .section-help {
             color: #6b7280;
             font-size: 14px;
@@ -241,6 +247,8 @@
             color: #444;
         }
 
+        /* ================= DESCRIPTION RESULT ================= */
+
         .description-result {
             margin-top: 22px;
             padding: 18px;
@@ -260,6 +268,80 @@
             color: #555;
             line-height: 1.6;
             white-space: pre-wrap;
+        }
+
+        /* ================= AI GUIDANCE ================= */
+
+        .guidance {
+            margin-top: 22px;
+            padding: 20px;
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #dcebf4;
+        }
+
+        .guidance-title {
+            font-size: 19px;
+            font-weight: bold;
+            color: #123f5c;
+            margin-bottom: 8px;
+        }
+
+        .guidance-level {
+            font-size: 14px;
+            font-weight: bold;
+            color: #176b91;
+            margin-bottom: 12px;
+        }
+
+        .guidance ul {
+            margin: 0;
+            padding-left: 22px;
+        }
+
+        .guidance li {
+            margin-bottom: 9px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        /* ================= DOCTOR ================= */
+
+        .doctor-section {
+            margin-top: 22px;
+            padding: 22px;
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #dcebf4;
+            text-align: center;
+        }
+
+        .doctor-section h3 {
+            margin-top: 0;
+            color: #123f5c;
+        }
+
+        .doctor-section p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .doctor-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 13px 22px;
+            background: #176b91;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .doctor-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 18px rgba(23, 107, 145, 0.25);
         }
 
         /* ================= TELEGRAM ================= */
@@ -349,6 +431,10 @@
                 width: 100%;
             }
 
+            .doctor-btn {
+                width: 100%;
+            }
+
         }
 
     </style>
@@ -359,13 +445,17 @@
 <body>
 
 
-    <!-- HEADER -->
+    <!-- ================= HEADER ================= -->
 
     <header class="header">
 
-        <div class="logo">🩺</div>
+        <div class="logo">
+            🩺
+        </div>
 
-        <h1>Skin Disease AI Detection</h1>
+        <h1>
+            Skin Disease AI Detection
+        </h1>
 
         <p>
             AI-powered skin image classification system
@@ -374,7 +464,7 @@
     </header>
 
 
-    <!-- MAIN -->
+    <!-- ================= MAIN ================= -->
 
     <main class="container">
 
@@ -385,12 +475,12 @@
             </h2>
 
             <p class="subtitle">
-                Upload a clear image and provide a short description
-                of the affected area.
+                Upload a clear image and optionally provide
+                a short description of the affected area.
             </p>
 
 
-            <!-- FORM -->
+            <!-- ================= FORM ================= -->
 
             <form
                 method="POST"
@@ -398,7 +488,7 @@
             >
 
 
-                <!-- UPLOAD -->
+                <!-- ================= UPLOAD ================= -->
 
                 <div class="upload-area">
 
@@ -425,7 +515,7 @@
                 </div>
 
 
-                <!-- PREVIEW -->
+                <!-- ================= PREVIEW ================= -->
 
                 <div id="preview-section">
 
@@ -441,30 +531,38 @@
                 </div>
 
 
-                <!-- DESCRIPTION -->
+                <!-- ================= DESCRIPTION ================= -->
 
                 <div id="description-section">
 
                     <div class="section-title">
+
                         📝 Describe the Concern
+
+                        <span class="optional">
+                            (Optional)
+                        </span>
+
                     </div>
 
                     <div class="section-help">
-                        Tell us about the affected area.
-                        For example, mention symptoms or how long
-                        you have noticed the problem.
+
+                        You can describe the affected area,
+                        symptoms, or how long you have noticed
+                        the problem. This field is optional.
+
                     </div>
 
                     <textarea
                         id="description"
                         name="description"
-                        placeholder="Example: Redness and itching for 3 days..."
+                        placeholder="Example: Redness and itching for 3 days... (Optional)"
                     ></textarea>
 
                 </div>
 
 
-                <!-- BUTTON -->
+                <!-- ================= ANALYZE BUTTON ================= -->
 
                 <div
                     class="button-area"
@@ -475,7 +573,9 @@
                         type="submit"
                         class="predict-btn"
                     >
+
                         🔍 Analyze Image
+
                     </button>
 
                 </div>
@@ -484,7 +584,7 @@
             </form>
 
 
-            <!-- RESULT -->
+            <!-- ================= RESULT ================= -->
 
             {% if prediction %}
 
@@ -503,10 +603,17 @@
                 </div>
 
                 <div class="confidence">
+
                     Model Confidence:
-                    <strong>{{ confidence }}%</strong>
+
+                    <strong>
+                        {{ "%.2f"|format(confidence) }}%
+                    </strong>
+
                 </div>
 
+
+                <!-- ================= USER DESCRIPTION ================= -->
 
                 {% if description %}
 
@@ -516,7 +623,75 @@
                         📝 Your Description
                     </div>
 
-                    <p>{{ description }}</p>
+                    <p>
+                        {{ description }}
+                    </p>
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- ================= AI GUIDANCE ================= -->
+
+                {% if guidance %}
+
+                <div class="guidance">
+
+                    <div class="guidance-title">
+                        📌 General AI Guidance
+                    </div>
+
+                    {% if guidance_level %}
+
+                    <div class="guidance-level">
+                        {{ guidance_level }}
+                    </div>
+
+                    {% endif %}
+
+                    <ul>
+
+                        {% for item in guidance %}
+
+                        <li>
+                            {{ item }}
+                        </li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- ================= FIND DERMATOLOGIST ================= -->
+
+                {% if dermatologist_url %}
+
+                <div class="doctor-section">
+
+                    <h3>
+                        👨‍⚕️ Consult a Dermatologist
+                    </h3>
+
+                    <p>
+                        If you are concerned about the result
+                        or your symptoms persist or worsen,
+                        consider consulting a qualified
+                        healthcare professional.
+                    </p>
+
+                    <a
+                        href="{{ dermatologist_url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="doctor-btn"
+                    >
+                        📍 Find Nearby Dermatologist
+                    </a>
 
                 </div>
 
@@ -527,13 +702,14 @@
             {% endif %}
 
 
-            <!-- TELEGRAM -->
+            <!-- ================= TELEGRAM ================= -->
 
             <div class="telegram-section">
 
                 <a
                     href="https://t.me/KeerthanaSkinDiseaseBot?start=website"
                     target="_blank"
+                    rel="noopener noreferrer"
                     class="telegram-btn"
                 >
                     🤖 Continue with Telegram
@@ -546,7 +722,7 @@
             </div>
 
 
-            <!-- WARNING -->
+            <!-- ================= WARNING ================= -->
 
             <div class="warning">
 
@@ -564,6 +740,8 @@
     </main>
 
 
+    <!-- ================= FOOTER ================= -->
+
     <footer class="footer">
 
         Skin Disease Detection Project
@@ -575,7 +753,7 @@
     </footer>
 
 
-    <!-- JAVASCRIPT -->
+    <!-- ================= JAVASCRIPT ================= -->
 
     <script>
 
@@ -595,51 +773,61 @@
             document.getElementById("button-area");
 
 
-        imageInput.addEventListener("change", function () {
+        imageInput.addEventListener(
+            "change",
+            function () {
 
-            const file = this.files[0];
+                const file = this.files[0];
 
 
-            if (!file) {
+                if (!file) {
 
-                previewSection.style.display = "none";
+                    previewSection.style.display =
+                        "none";
 
-                descriptionSection.style.display = "none";
+                    descriptionSection.style.display =
+                        "none";
 
-                buttonArea.style.display = "none";
+                    buttonArea.style.display =
+                        "none";
 
-                preview.removeAttribute("src");
+                    preview.removeAttribute(
+                        "src"
+                    );
 
-                return;
+                    return;
+
+                }
+
+
+                // ================= PREVIEW =================
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function (event) {
+
+                        preview.src =
+                            event.target.result;
+
+                        previewSection.style.display =
+                            "block";
+
+                        descriptionSection.style.display =
+                            "block";
+
+                        buttonArea.style.display =
+                            "block";
+
+                    };
+
+
+                reader.readAsDataURL(file);
 
             }
-
-
-            // Show selected image
-
-            const reader = new FileReader();
-
-
-            reader.onload = function (event) {
-
-                preview.src =
-                    event.target.result;
-
-                previewSection.style.display =
-                    "block";
-
-                descriptionSection.style.display =
-                    "block";
-
-                buttonArea.style.display =
-                    "block";
-
-            };
-
-
-            reader.readAsDataURL(file);
-
-        });
+        );
 
     </script>
 
