@@ -2,9 +2,7 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Skin Disease AI Detection</title>
@@ -21,8 +19,6 @@
             background: #f4f8fc;
             color: #1f2937;
         }
-
-        /* ================= HEADER ================= */
 
         .header {
             background: linear-gradient(135deg, #0f3d5e, #176b91);
@@ -47,8 +43,6 @@
             opacity: 0.9;
         }
 
-        /* ================= MAIN ================= */
-
         .container {
             width: 100%;
             max-width: 850px;
@@ -60,7 +54,7 @@
             background: white;
             border-radius: 22px;
             padding: 40px;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.08);
         }
 
         .title {
@@ -77,20 +71,12 @@
             line-height: 1.6;
         }
 
-        /* ================= UPLOAD ================= */
-
         .upload-area {
             border: 2px dashed #7aa9c7;
             background: #f8fbfe;
             border-radius: 18px;
             padding: 35px 20px;
             text-align: center;
-            transition: 0.3s;
-        }
-
-        .upload-area:hover {
-            border-color: #176b91;
-            background: #f2f9fd;
         }
 
         .upload-icon {
@@ -116,20 +102,12 @@
             background: white;
             border: 1px solid #d5dde5;
             border-radius: 10px;
-            cursor: pointer;
         }
-
-        /* ================= PREVIEW ================= */
 
         #preview-section {
             display: none;
             margin-top: 30px;
             text-align: center;
-        }
-
-        #preview-section h3 {
-            color: #123f5c;
-            margin-bottom: 15px;
         }
 
         #preview {
@@ -139,10 +117,7 @@
             object-fit: cover;
             border-radius: 18px;
             border: 3px solid #dcebf4;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
         }
-
-        /* ================= DESCRIPTION ================= */
 
         #description-section {
             display: none;
@@ -178,15 +153,7 @@
             font-size: 15px;
             font-family: Arial, sans-serif;
             resize: vertical;
-            outline: none;
         }
-
-        textarea:focus {
-            border-color: #176b91;
-            box-shadow: 0 0 0 3px rgba(23, 107, 145, 0.12);
-        }
-
-        /* ================= BUTTON ================= */
 
         .button-area {
             display: none;
@@ -203,15 +170,7 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
         }
-
-        .predict-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(15, 61, 94, 0.25);
-        }
-
-        /* ================= RESULT ================= */
 
         .result {
             margin-top: 35px;
@@ -247,81 +206,49 @@
             color: #444;
         }
 
-        /* ================= DESCRIPTION RESULT ================= */
-
-        .description-result {
-            margin-top: 22px;
-            padding: 18px;
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e0e7ed;
-        }
-
-        .description-result-title {
-            font-weight: bold;
-            color: #123f5c;
-            margin-bottom: 8px;
-        }
-
-        .description-result p {
-            margin: 0;
-            color: #555;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        /* ================= AI GUIDANCE ================= */
+        /* ================= GUIDANCE ================= */
 
         .guidance {
-            margin-top: 22px;
+            margin-top: 25px;
             padding: 20px;
             background: white;
             border-radius: 14px;
             border: 1px solid #dcebf4;
         }
 
-        .guidance-title {
-            font-size: 19px;
-            font-weight: bold;
+        .guidance h3 {
+            margin-top: 0;
             color: #123f5c;
-            margin-bottom: 8px;
         }
 
         .guidance-level {
-            font-size: 14px;
             font-weight: bold;
             color: #176b91;
             margin-bottom: 12px;
         }
 
-        .guidance ul {
-            margin: 0;
-            padding-left: 22px;
-        }
-
         .guidance li {
-            margin-bottom: 9px;
-            color: #555;
+            margin-bottom: 8px;
             line-height: 1.5;
         }
 
         /* ================= DOCTOR ================= */
 
-        .doctor-section {
-            margin-top: 22px;
-            padding: 22px;
+        .doctor {
+            margin-top: 20px;
+            padding: 20px;
+            text-align: center;
             background: white;
             border-radius: 14px;
             border: 1px solid #dcebf4;
-            text-align: center;
         }
 
-        .doctor-section h3 {
-            margin-top: 0;
+        .doctor h3 {
             color: #123f5c;
+            margin-top: 0;
         }
 
-        .doctor-section p {
+        .doctor p {
             color: #666;
             font-size: 14px;
             line-height: 1.5;
@@ -329,19 +256,33 @@
 
         .doctor-btn {
             display: inline-block;
-            margin-top: 10px;
-            padding: 13px 22px;
             background: #176b91;
             color: white;
-            text-decoration: none;
+            padding: 13px 22px;
             border-radius: 10px;
+            text-decoration: none;
             font-weight: bold;
-            transition: 0.2s;
         }
 
-        .doctor-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 7px 18px rgba(23, 107, 145, 0.25);
+        /* ================= TRACK ================= */
+
+        .track-section {
+            margin-top: 25px;
+            text-align: center;
+            padding: 20px;
+            background: #f8fbfe;
+            border-radius: 14px;
+            border: 1px solid #dcebf4;
+        }
+
+        .track-btn {
+            display: inline-block;
+            background: #0f3d5e;
+            color: white;
+            padding: 13px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
         }
 
         /* ================= TELEGRAM ================= */
@@ -367,8 +308,6 @@
             color: #777;
         }
 
-        /* ================= WARNING ================= */
-
         .warning {
             margin-top: 25px;
             padding: 15px;
@@ -380,8 +319,6 @@
             line-height: 1.6;
         }
 
-        /* ================= FOOTER ================= */
-
         .footer {
             text-align: center;
             color: #777;
@@ -389,16 +326,10 @@
             padding: 25px;
         }
 
-        /* ================= MOBILE ================= */
-
         @media (max-width: 600px) {
 
             .header {
                 padding: 32px 15px;
-            }
-
-            .logo {
-                font-size: 35px;
             }
 
             .header h1 {
@@ -414,27 +345,17 @@
                 padding: 25px 18px;
             }
 
-            .title {
-                font-size: 22px;
+            .predict-btn,
+            .telegram-btn,
+            .doctor-btn,
+            .track-btn {
+                width: 100%;
             }
 
             #preview {
                 width: 100%;
                 height: 250px;
             }
-
-            .predict-btn {
-                width: 100%;
-            }
-
-            .telegram-btn {
-                width: 100%;
-            }
-
-            .doctor-btn {
-                width: 100%;
-            }
-
         }
 
     </style>
@@ -445,391 +366,393 @@
 <body>
 
 
-    <!-- ================= HEADER ================= -->
+<header class="header">
 
-    <header class="header">
+    <div class="logo">🩺</div>
 
-        <div class="logo">
-            🩺
-        </div>
+    <h1>
+        Skin Disease AI Detection
+    </h1>
 
-        <h1>
-            Skin Disease AI Detection
-        </h1>
+    <p>
+        AI-powered skin image classification system
+    </p>
 
-        <p>
-            AI-powered skin image classification system
-        </p>
-
-    </header>
+</header>
 
 
-    <!-- ================= MAIN ================= -->
+<main class="container">
 
-    <main class="container">
+<div class="card">
 
-        <div class="card">
 
-            <h2 class="title">
-                Analyze Your Skin Image
-            </h2>
+    <h2 class="title">
+        Analyze Your Skin Image
+    </h2>
 
-            <p class="subtitle">
-                Upload a clear image and optionally provide
-                a short description of the affected area.
+    <p class="subtitle">
+        Upload a clear image and optionally provide
+        a short description of the affected area.
+    </p>
+
+
+    <!-- ================= UPLOAD ================= -->
+
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+    >
+
+        <div class="upload-area">
+
+            <div class="upload-icon">
+                📷
+            </div>
+
+            <h3>
+                Upload Skin Image
+            </h3>
+
+            <p>
+                JPG, JPEG or PNG files
             </p>
 
-
-            <!-- ================= FORM ================= -->
-
-            <form
-                method="POST"
-                enctype="multipart/form-data"
+            <input
+                type="file"
+                id="image"
+                name="image"
+                accept="image/jpeg,image/png,image/jpg"
+                required
             >
-
-
-                <!-- ================= UPLOAD ================= -->
-
-                <div class="upload-area">
-
-                    <div class="upload-icon">
-                        📷
-                    </div>
-
-                    <h3>
-                        Upload Skin Image
-                    </h3>
-
-                    <p>
-                        JPG, JPEG or PNG files
-                    </p>
-
-                    <input
-                        type="file"
-                        id="image"
-                        name="image"
-                        accept="image/jpeg,image/png,image/jpg"
-                        required
-                    >
-
-                </div>
-
-
-                <!-- ================= PREVIEW ================= -->
-
-                <div id="preview-section">
-
-                    <h3>
-                        🖼️ Image Preview
-                    </h3>
-
-                    <img
-                        id="preview"
-                        alt="Selected skin image"
-                    >
-
-                </div>
-
-
-                <!-- ================= DESCRIPTION ================= -->
-
-                <div id="description-section">
-
-                    <div class="section-title">
-
-                        📝 Describe the Concern
-
-                        <span class="optional">
-                            (Optional)
-                        </span>
-
-                    </div>
-
-                    <div class="section-help">
-
-                        You can describe the affected area,
-                        symptoms, or how long you have noticed
-                        the problem. This field is optional.
-
-                    </div>
-
-                    <textarea
-                        id="description"
-                        name="description"
-                        placeholder="Example: Redness and itching for 3 days... (Optional)"
-                    ></textarea>
-
-                </div>
-
-
-                <!-- ================= ANALYZE BUTTON ================= -->
-
-                <div
-                    class="button-area"
-                    id="button-area"
-                >
-
-                    <button
-                        type="submit"
-                        class="predict-btn"
-                    >
-
-                        🔍 Analyze Image
-
-                    </button>
-
-                </div>
-
-
-            </form>
-
-
-            <!-- ================= RESULT ================= -->
-
-            {% if prediction %}
-
-            <div class="result">
-
-                <h2>
-                    🔬 AI Prediction Result
-                </h2>
-
-                <div class="result-label">
-                    Predicted Class
-                </div>
-
-                <div class="disease">
-                    {{ prediction }}
-                </div>
-
-                <div class="confidence">
-
-                    Model Confidence:
-
-                    <strong>
-                        {{ "%.2f"|format(confidence) }}%
-                    </strong>
-
-                </div>
-
-
-                <!-- ================= USER DESCRIPTION ================= -->
-
-                {% if description %}
-
-                <div class="description-result">
-
-                    <div class="description-result-title">
-                        📝 Your Description
-                    </div>
-
-                    <p>
-                        {{ description }}
-                    </p>
-
-                </div>
-
-                {% endif %}
-
-
-                <!-- ================= AI GUIDANCE ================= -->
-
-                {% if guidance %}
-
-                <div class="guidance">
-
-                    <div class="guidance-title">
-                        📌 General AI Guidance
-                    </div>
-
-                    {% if guidance_level %}
-
-                    <div class="guidance-level">
-                        {{ guidance_level }}
-                    </div>
-
-                    {% endif %}
-
-                    <ul>
-
-                        {% for item in guidance %}
-
-                        <li>
-                            {{ item }}
-                        </li>
-
-                        {% endfor %}
-
-                    </ul>
-
-                </div>
-
-                {% endif %}
-
-
-                <!-- ================= FIND DERMATOLOGIST ================= -->
-
-                {% if dermatologist_url %}
-
-                <div class="doctor-section">
-
-                    <h3>
-                        👨‍⚕️ Consult a Dermatologist
-                    </h3>
-
-                    <p>
-                        If you are concerned about the result
-                        or your symptoms persist or worsen,
-                        consider consulting a qualified
-                        healthcare professional.
-                    </p>
-
-                    <a
-                        href="{{ dermatologist_url }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="doctor-btn"
-                    >
-                        📍 Find Nearby Dermatologist
-                    </a>
-
-                </div>
-
-                {% endif %}
-
-            </div>
-
-            {% endif %}
-
-
-            <!-- ================= TELEGRAM ================= -->
-
-            <div class="telegram-section">
-
-                <a
-                    href="https://t.me/KeerthanaSkinDiseaseBot?start=website"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="telegram-btn"
-                >
-                    🤖 Continue with Telegram
-                </a>
-
-                <div class="telegram-text">
-                    Send an image and get the prediction through Telegram.
-                </div>
-
-            </div>
-
-
-            <!-- ================= WARNING ================= -->
-
-            <div class="warning">
-
-                ⚠️ <strong>Educational Project Notice:</strong>
-
-                This AI system is developed for educational and
-                project demonstration purposes. Its prediction is
-                not a medical diagnosis and should not replace advice
-                from a qualified healthcare professional.
-
-            </div>
 
         </div>
 
-    </main>
+
+        <!-- ================= PREVIEW ================= -->
+
+        <div id="preview-section">
+
+            <h3>
+                🖼️ Image Preview
+            </h3>
+
+            <img
+                id="preview"
+                alt="Selected skin image"
+            >
+
+        </div>
 
 
-    <!-- ================= FOOTER ================= -->
+        <!-- ================= DESCRIPTION ================= -->
 
-    <footer class="footer">
+        <div id="description-section">
 
-        Skin Disease Detection Project
+            <div class="section-title">
 
-        <br>
+                📝 Describe the Concern
 
-        CNN • TensorFlow • Flask
+                <span class="optional">
+                    (Optional)
+                </span>
 
-    </footer>
+            </div>
 
+            <div class="section-help">
 
-    <!-- ================= JAVASCRIPT ================= -->
+                You can describe the affected area,
+                symptoms, or how long you have noticed
+                the problem. This field is optional.
 
-    <script>
+            </div>
 
-        const imageInput =
-            document.getElementById("image");
+            <textarea
+                id="description"
+                name="description"
+                placeholder="Example: Redness and itching for 3 days... (Optional)"
+            ></textarea>
 
-        const previewSection =
-            document.getElementById("preview-section");
-
-        const preview =
-            document.getElementById("preview");
-
-        const descriptionSection =
-            document.getElementById("description-section");
-
-        const buttonArea =
-            document.getElementById("button-area");
+        </div>
 
 
-        imageInput.addEventListener(
-            "change",
-            function () {
+        <!-- ================= ANALYZE ================= -->
 
-                const file = this.files[0];
+        <div
+            class="button-area"
+            id="button-area"
+        >
 
+            <button
+                type="submit"
+                class="predict-btn"
+            >
+                🔍 Analyze Image
+            </button>
 
-                if (!file) {
+        </div>
 
-                    previewSection.style.display =
-                        "none";
-
-                    descriptionSection.style.display =
-                        "none";
-
-                    buttonArea.style.display =
-                        "none";
-
-                    preview.removeAttribute(
-                        "src"
-                    );
-
-                    return;
-
-                }
+    </form>
 
 
-                // ================= PREVIEW =================
+    <!-- ================= RESULT ================= -->
 
-                const reader =
-                    new FileReader();
+    {% if prediction %}
+
+    <div class="result">
+
+        <h2>
+            🔬 AI Prediction Result
+        </h2>
+
+        <div class="result-label">
+            Predicted Class
+        </div>
+
+        <div class="disease">
+            {{ prediction }}
+        </div>
+
+        <div class="confidence">
+
+            Model Confidence:
+
+            <strong>
+                {{ "%.2f"|format(confidence) }}%
+            </strong>
+
+        </div>
 
 
-                reader.onload =
-                    function (event) {
+        <!-- ================= DESCRIPTION ================= -->
 
-                        preview.src =
-                            event.target.result;
+        {% if description %}
 
-                        previewSection.style.display =
-                            "block";
+        <div class="guidance">
 
-                        descriptionSection.style.display =
-                            "block";
+            <h3>
+                📝 Your Description
+            </h3>
 
-                        buttonArea.style.display =
-                            "block";
+            <p>
+                {{ description }}
+            </p>
 
-                    };
+        </div>
+
+        {% endif %}
 
 
-                reader.readAsDataURL(file);
+        <!-- ================= IDEA 1 GUIDANCE ================= -->
 
-            }
-        );
+        {% if guidance %}
 
-    </script>
+        <div class="guidance">
+
+            <h3>
+                📌 General AI Guidance
+            </h3>
+
+            <div class="guidance-level">
+                {{ guidance_level }}
+            </div>
+
+            <ul>
+
+                {% for item in guidance %}
+
+                <li>
+                    {{ item }}
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+        </div>
+
+        {% endif %}
+
+
+        <!-- ================= DERMATOLOGIST ================= -->
+
+        {% if dermatologist_url %}
+
+        <div class="doctor">
+
+            <h3>
+                👨‍⚕️ Find a Dermatologist
+            </h3>
+
+            <p>
+                If you are concerned about the result,
+                or the skin concern persists or changes,
+                consider consulting a qualified healthcare professional.
+            </p>
+
+            <a
+                href="{{ dermatologist_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="doctor-btn"
+            >
+                📍 Find Nearby Dermatologist
+            </a>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+
+    <!-- ================= IDEA 2 ================= -->
+
+    <div class="track-section">
+
+        <h3>
+            📸 Track My Skin
+        </h3>
+
+        <p>
+            Upload two images from different dates
+            and compare the AI classifications.
+        </p>
+
+        <a
+            href="/track"
+            class="track-btn"
+        >
+            📊 Start Skin Tracking
+        </a>
+
+    </div>
+
+
+    <!-- ================= TELEGRAM ================= -->
+
+    <div class="telegram-section">
+
+        <a
+            href="https://t.me/KeerthanaSkinDiseaseBot?start=website"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="telegram-btn"
+        >
+            🤖 Continue with Telegram
+        </a>
+
+        <div class="telegram-text">
+
+            Send an image and get the prediction
+            and voice report through Telegram.
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= WARNING ================= -->
+
+    <div class="warning">
+
+        ⚠️ <strong>Educational Project Notice:</strong>
+
+        This AI system is developed for educational
+        and project demonstration purposes.
+
+        Its prediction is not a medical diagnosis
+        and should not replace advice from a qualified
+        healthcare professional.
+
+    </div>
+
+
+</div>
+
+</main>
+
+
+<footer class="footer">
+
+    Skin Disease Detection Project
+
+    <br>
+
+    CNN • TensorFlow • Flask
+
+</footer>
+
+
+<script>
+
+const imageInput =
+    document.getElementById("image");
+
+const previewSection =
+    document.getElementById("preview-section");
+
+const preview =
+    document.getElementById("preview");
+
+const descriptionSection =
+    document.getElementById("description-section");
+
+const buttonArea =
+    document.getElementById("button-area");
+
+
+imageInput.addEventListener(
+    "change",
+    function () {
+
+        const file = this.files[0];
+
+        if (!file) {
+
+            previewSection.style.display =
+                "none";
+
+            descriptionSection.style.display =
+                "none";
+
+            buttonArea.style.display =
+                "none";
+
+            preview.removeAttribute("src");
+
+            return;
+        }
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload =
+            function (event) {
+
+                preview.src =
+                    event.target.result;
+
+                previewSection.style.display =
+                    "block";
+
+                descriptionSection.style.display =
+                    "block";
+
+                buttonArea.style.display =
+                    "block";
+            };
+
+
+        reader.readAsDataURL(file);
+
+    }
+);
+
+</script>
 
 
 </body>
