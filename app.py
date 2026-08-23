@@ -9,17 +9,20 @@ from flask import Flask, render_template, request
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from werkzeug.utils import secure_filename
 
+
 # =========================================================
 # BASE DIRECTORY
 # =========================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
 # =========================================================
 # FLASK APP
 # =========================================================
 
 app = Flask(__name__)
+
 
 # =========================================================
 # TELEGRAM BOT
@@ -32,9 +35,8 @@ RAILWAY_DOMAIN = os.environ.get(
     "skin-disease-detection-production.up.railway.app"
 )
 
-WEBHOOK_URL = (
-    f"https://{RAILWAY_DOMAIN}/telegram-webhook"
-)
+WEBHOOK_URL = f"https://{RAILWAY_DOMAIN}/telegram-webhook"
+
 
 if TOKEN:
     print("Telegram bot token found.")
@@ -56,9 +58,7 @@ def telegram_api(method, data=None):
             "TELEGRAM_BOT_TOKEN is not configured."
         )
 
-    url = (
-        f"https://api.telegram.org/bot{TOKEN}/{method}"
-    )
+    url = f"https://api.telegram.org/bot{TOKEN}/{method}"
 
     if data is None:
         data = {}
@@ -118,9 +118,7 @@ def setup_telegram_webhook():
             "Telegram webhook configured successfully."
         )
 
-        print(
-            result
-        )
+        print(result)
 
     except Exception as e:
 
@@ -369,8 +367,124 @@ class_names = [
     "Seborrheic Keratoses",
 
     "Tinea / Fungal Infection"
-
 ]
+
+
+# =========================================================
+# GENERAL AI GUIDANCE
+# =========================================================
+
+disease_guidance = {
+
+    "Eczema": {
+        "level": "General Guidance",
+        "advice": [
+            "Keep the affected skin gently clean.",
+            "Avoid known skin irritants when possible.",
+            "Avoid scratching the affected area.",
+            "Consider consulting a dermatologist if symptoms persist or worsen."
+        ]
+    },
+
+    "Warts Molluscum and other Viral Infections": {
+        "level": "General Guidance",
+        "advice": [
+            "Avoid scratching or picking the affected area.",
+            "Keep the area clean.",
+            "Avoid sharing personal items such as towels.",
+            "Consider consulting a dermatologist for proper evaluation."
+        ]
+    },
+
+    "Melanoma": {
+        "level": "Medical Attention Recommended",
+        "advice": [
+            "This AI prediction should not be treated as a diagnosis.",
+            "A suspicious or changing skin lesion should be evaluated by a qualified doctor.",
+            "Consider arranging a dermatologist consultation promptly."
+        ]
+    },
+
+    "Atopic Dermatitis": {
+        "level": "General Guidance",
+        "advice": [
+            "Keep the skin gently moisturized.",
+            "Avoid scratching and known skin irritants.",
+            "Use gentle, fragrance-free skin products when possible.",
+            "Consider consulting a dermatologist if symptoms persist or worsen."
+        ]
+    },
+
+    "Basal Cell Carcinoma (BCC)": {
+        "level": "Medical Attention Recommended",
+        "advice": [
+            "This AI prediction is not a medical diagnosis.",
+            "A suspicious skin lesion should be evaluated by a qualified doctor.",
+            "Consider arranging a dermatologist consultation."
+        ]
+    },
+
+    "Melanocytic Nevi (NV)": {
+        "level": "General Guidance",
+        "advice": [
+            "Monitor the appearance of the skin lesion.",
+            "Pay attention to noticeable changes in size, shape or colour.",
+            "Consider consulting a dermatologist if the lesion changes or concerns you."
+        ]
+    },
+
+    "Benign Keratosis-like Lesions (BKL)": {
+        "level": "General Guidance",
+        "advice": [
+            "Avoid scratching or picking the affected area.",
+            "Monitor any noticeable changes in the lesion.",
+            "Consider consulting a dermatologist if it changes or becomes concerning."
+        ]
+    },
+
+    "Psoriasis / Lichen Planus": {
+        "level": "General Guidance",
+        "advice": [
+            "Keep the skin moisturized.",
+            "Avoid scratching irritated areas.",
+            "Avoid known personal skin triggers when possible.",
+            "Consider consulting a dermatologist if symptoms persist or worsen."
+        ]
+    },
+
+    "Seborrheic Keratoses": {
+        "level": "General Guidance",
+        "advice": [
+            "Avoid scratching or picking the lesion.",
+            "Monitor for noticeable changes.",
+            "Consider consulting a dermatologist if the lesion changes or causes concern."
+        ]
+    },
+
+    "Tinea / Fungal Infection": {
+        "level": "General Guidance",
+        "advice": [
+            "Keep the affected area clean and dry.",
+            "Avoid scratching the affected area.",
+            "Avoid sharing personal items such as towels.",
+            "Consider consulting a healthcare professional for proper evaluation."
+        ]
+    }
+}
+
+
+# =========================================================
+# DEFAULT GUIDANCE
+# =========================================================
+
+DEFAULT_GUIDANCE = {
+    "level": "General Guidance",
+    "advice": [
+        "This result is an AI model prediction only.",
+        "Avoid scratching or irritating the affected area.",
+        "Consider consulting a qualified healthcare professional if you are concerned."
+    ]
+}
 
 
 # =========================================================
@@ -396,9 +510,7 @@ app.config[
 # IMAGE PREDICTION
 # =========================================================
 
-def predict_image(
-    image_path
-):
+def predict_image(image_path):
 
     img = tf.keras.utils.load_img(
         image_path,
@@ -441,6 +553,34 @@ def predict_image(
 
 
 # =========================================================
+# GET AI GUIDANCE
+# =========================================================
+
+def get_guidance(disease):
+
+    return disease_guidance.get(
+        disease,
+        DEFAULT_GUIDANCE
+    )
+
+
+# =========================================================
+# GOOGLE MAPS DERMATOLOGIST SEARCH
+# =========================================================
+
+def get_dermatologist_map_url():
+
+    query = urllib.parse.quote(
+        "dermatologist near me"
+    )
+
+    return (
+        f"https://www.google.com/maps/search/"
+        f"?api=1&query={query}"
+    )
+
+
+# =========================================================
 # WEBSITE HOME
 # =========================================================
 
@@ -453,6 +593,11 @@ def home():
     prediction = None
     confidence = None
     description = ""
+
+    guidance_level = None
+    guidance = []
+
+    dermatologist_url = get_dermatologist_map_url()
 
     if request.method == "POST":
 
@@ -490,6 +635,18 @@ def home():
                     )
                 )
 
+                guidance_data = get_guidance(
+                    prediction
+                )
+
+                guidance_level = (
+                    guidance_data["level"]
+                )
+
+                guidance = (
+                    guidance_data["advice"]
+                )
+
             except Exception as e:
 
                 print(
@@ -503,16 +660,22 @@ def home():
 
                 confidence = None
 
+                guidance_level = None
+                guidance = []
+
     return render_template(
         "index.html",
         prediction=prediction,
         confidence=confidence,
-        description=description
+        description=description,
+        guidance_level=guidance_level,
+        guidance=guidance,
+        dermatologist_url=dermatologist_url
     )
 
 
 # =========================================================
-# TELEGRAM SEND MESSAGE
+# TELEGRAM SEND MENU
 # =========================================================
 
 def send_telegram_menu(chat_id):
@@ -557,6 +720,12 @@ def send_telegram_menu(chat_id):
             )
         }
     )
+
+
+# =========================================================
+# TELEGRAM SEND MESSAGE
+# =========================================================
+
 def send_telegram_message(
     chat_id,
     text
@@ -614,10 +783,13 @@ def download_telegram_photo(
 
 
 # =========================================================
-# TELEGRAM WEBHOOK
+# TELEGRAM BUTTON HANDLER
 # =========================================================
 
-def handle_button(chat_id, callback_data):
+def handle_button(
+    chat_id,
+    callback_data
+):
 
     if callback_data == "howto":
 
@@ -662,6 +834,12 @@ def handle_button(chat_id, callback_data):
             "model to classify skin images into 10 categories.\n\n"
             "🤖 Built as an AI/ML project."
         )
+
+
+# =========================================================
+# TELEGRAM WEBHOOK
+# =========================================================
+
 @app.route(
     "/telegram-webhook",
     methods=["POST"]
@@ -674,6 +852,8 @@ def telegram_webhook():
             "Telegram bot is not configured",
             503
         )
+
+    chat_id = None
 
     try:
 
@@ -695,18 +875,22 @@ def telegram_webhook():
 
         if callback_query:
 
-            callback_chat_id = callback_query.get(
-                "message",
-                {}
-            ).get(
-                "chat",
-                {}
-            ).get(
-                "id"
+            callback_chat_id = (
+                callback_query.get(
+                    "message",
+                    {}
+                ).get(
+                    "chat",
+                    {}
+                ).get(
+                    "id"
+                )
             )
 
-            callback_data = callback_query.get(
-                "data"
+            callback_data = (
+                callback_query.get(
+                    "data"
+                )
             )
 
             if callback_chat_id and callback_data:
@@ -724,6 +908,10 @@ def telegram_webhook():
             )
 
             return "OK"
+
+        # =================================================
+        # MESSAGE
+        # =================================================
 
         message = data.get(
             "message"
@@ -757,7 +945,9 @@ def telegram_webhook():
 
         if text == "/start":
 
-            send_telegram_menu(chat_id)
+            send_telegram_menu(
+                chat_id
+            )
 
             return "OK"
 
@@ -837,12 +1027,25 @@ def telegram_webhook():
                 )
             )
 
+            guidance_data = get_guidance(
+                disease
+            )
+
+            guidance_text = "\n".join(
+                [
+                    f"• {item}"
+                    for item in guidance_data["advice"]
+                ]
+            )
+
             send_telegram_message(
                 chat_id,
                 (
                     "🔍 Prediction Result\n\n"
-                    f"🦠 Disease: {disease}\n"
-                    f"📊 Confidence: {confidence:.2f}%\n\n"
+                    f"🦠 Prediction: {disease}\n"
+                    f"📊 Model Confidence: {confidence:.2f}%\n\n"
+                    f"📌 {guidance_data['level']}\n"
+                    f"{guidance_text}\n\n"
                     "⚠️ This is an AI model prediction, "
                     "not a medical diagnosis."
                 )
