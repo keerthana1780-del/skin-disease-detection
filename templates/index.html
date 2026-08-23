@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -19,6 +20,8 @@
             background: #f4f8fc;
             color: #1f2937;
         }
+
+        /* ================= HEADER ================= */
 
         .header {
             background: linear-gradient(135deg, #0f3d5e, #176b91);
@@ -42,6 +45,8 @@
             font-size: 16px;
             opacity: 0.9;
         }
+
+        /* ================= CONTAINER ================= */
 
         .container {
             width: 100%;
@@ -180,6 +185,10 @@
             cursor: pointer;
         }
 
+        .predict-btn:hover {
+            opacity: 0.92;
+        }
+
         /* ================= RESULT ================= */
 
         .result {
@@ -200,6 +209,7 @@
             text-align: center;
             color: #777;
             font-size: 14px;
+            margin-top: 20px;
         }
 
         .disease {
@@ -216,9 +226,9 @@
             color: #444;
         }
 
-        /* ================= RISK ================= */
+        /* ================= AI CONFIDENCE ================= */
 
-        .risk-box {
+        .confidence-box {
             margin-top: 25px;
             padding: 20px;
             background: white;
@@ -227,30 +237,30 @@
             text-align: center;
         }
 
-        .risk-box h3 {
+        .confidence-box h3 {
             margin-top: 0;
             color: #123f5c;
         }
 
-        .risk-value {
+        .confidence-level {
             font-size: 24px;
             font-weight: bold;
             margin-top: 8px;
         }
 
-        .risk-low {
+        .confidence-low {
             color: #218739;
         }
 
-        .risk-medium {
+        .confidence-medium {
             color: #d28a00;
         }
 
-        .risk-high {
+        .confidence-high {
             color: #c62828;
         }
 
-        .risk-note {
+        .confidence-note {
             color: #666;
             font-size: 13px;
             line-height: 1.5;
@@ -300,6 +310,7 @@
         .description-result p {
             color: #555;
             line-height: 1.6;
+            white-space: pre-wrap;
         }
 
         /* ================= DOCTOR ================= */
@@ -334,6 +345,10 @@
             font-weight: bold;
         }
 
+        .doctor-btn:hover {
+            opacity: 0.9;
+        }
+
         /* ================= TRACK ================= */
 
         .track-section {
@@ -343,6 +358,15 @@
             background: #f8fbfe;
             border-radius: 14px;
             border: 1px solid #dcebf4;
+        }
+
+        .track-section h3 {
+            color: #123f5c;
+        }
+
+        .track-section p {
+            color: #666;
+            line-height: 1.5;
         }
 
         .track-btn {
@@ -378,11 +402,11 @@
             color: #777;
         }
 
-        /* ================= WARNING ================= */
+        /* ================= DISCLAIMER ================= */
 
         .warning {
             margin-top: 25px;
-            padding: 15px;
+            padding: 17px;
             background: #fff8e5;
             border: 1px solid #f1d58a;
             border-radius: 12px;
@@ -436,6 +460,7 @@
             .disease {
                 font-size: 21px;
             }
+
         }
 
     </style>
@@ -445,9 +470,16 @@
 
 <body>
 
+
+<!-- ===================================================== -->
+<!-- HEADER -->
+<!-- ===================================================== -->
+
 <header class="header">
 
-    <div class="logo">🩺</div>
+    <div class="logo">
+        🩺
+    </div>
 
     <h1>
         Skin Disease AI Detection
@@ -459,6 +491,10 @@
 
 </header>
 
+
+<!-- ===================================================== -->
+<!-- MAIN -->
+<!-- ===================================================== -->
 
 <main class="container">
 
@@ -474,7 +510,9 @@
     </p>
 
 
-    <!-- ================= UPLOAD ================= -->
+    <!-- ================================================= -->
+    <!-- UPLOAD FORM -->
+    <!-- ================================================= -->
 
     <form
         method="POST"
@@ -506,7 +544,9 @@
         </div>
 
 
-        <!-- ================= PREVIEW ================= -->
+        <!-- ================================================= -->
+        <!-- IMAGE PREVIEW -->
+        <!-- ================================================= -->
 
         <div id="preview-section">
 
@@ -522,7 +562,9 @@
         </div>
 
 
-        <!-- ================= DESCRIPTION ================= -->
+        <!-- ================================================= -->
+        <!-- DESCRIPTION -->
+        <!-- ================================================= -->
 
         <div id="description-section">
 
@@ -553,7 +595,9 @@
         </div>
 
 
-        <!-- ================= ANALYZE ================= -->
+        <!-- ================================================= -->
+        <!-- ANALYZE BUTTON -->
+        <!-- ================================================= -->
 
         <div
             class="button-area"
@@ -572,9 +616,9 @@
     </form>
 
 
-    <!-- ================================================= -->
-    <!-- IDEA 1 RESULT -->
-    <!-- ================================================= -->
+    <!-- ===================================================== -->
+    <!-- AI RESULT -->
+    <!-- ===================================================== -->
 
     {% if prediction %}
 
@@ -585,7 +629,9 @@
         </h2>
 
 
-        <!-- ================= PREDICTION ================= -->
+        <!-- ================================================= -->
+        <!-- PREDICTED CLASS -->
+        <!-- ================================================= -->
 
         <div class="result-label">
             Predicted Class
@@ -596,11 +642,13 @@
         </div>
 
 
-        <!-- ================= CONFIDENCE ================= -->
+        <!-- ================================================= -->
+        <!-- MODEL CONFIDENCE -->
+        <!-- ================================================= -->
 
         <div class="confidence">
 
-            AI Confidence:
+            Model Confidence:
 
             <strong>
                 {{ "%.2f"|format(confidence) }}%
@@ -610,49 +658,63 @@
 
 
         <!-- ================================================= -->
-        <!-- RISK LEVEL -->
+        <!-- AI CONFIDENCE LEVEL -->
         <!-- ================================================= -->
 
-        <div class="risk-box">
+        <div class="confidence-box">
 
             <h3>
-                ⚠️ Risk / Confidence Level
+                📊 AI Confidence Level
             </h3>
+
 
             {% if confidence >= 70 %}
 
-                <div class="risk-value risk-high">
+                <div class="confidence-level confidence-high">
                     HIGH
                 </div>
 
-                <div class="risk-note">
-                    The AI model has relatively high confidence
-                    in this prediction. This does not mean the
-                    condition is medically confirmed.
+                <div class="confidence-note">
+
+                    The model shows relatively high confidence
+                    in this image classification.
+
+                    This confidence score does not confirm
+                    a medical condition.
+
                 </div>
+
 
             {% elif confidence >= 40 %}
 
-                <div class="risk-value risk-medium">
+                <div class="confidence-level confidence-medium">
                     MEDIUM
                 </div>
 
-                <div class="risk-note">
-                    The AI model has medium confidence.
+                <div class="confidence-note">
+
+                    The model shows moderate confidence
+                    in this image classification.
+
                     Consider professional evaluation if the
                     concern persists or changes.
+
                 </div>
+
 
             {% else %}
 
-                <div class="risk-value risk-low">
+                <div class="confidence-level confidence-low">
                     LOW
                 </div>
 
-                <div class="risk-note">
-                    The AI model has low confidence.
+                <div class="confidence-note">
+
+                    The model shows low confidence.
+
                     The image may be difficult for the model
                     to classify accurately.
+
                 </div>
 
             {% endif %}
@@ -682,21 +744,20 @@
 
 
         <!-- ================================================= -->
-        <!-- ACTIONS -->
+        <!-- RECOMMENDED ACTIONS -->
         <!-- ================================================= -->
 
         <div class="actions">
 
             <h3>
-                📌 Recommended Actions
+                📌 General Skin Care Guidance
             </h3>
 
             <ul>
 
                 <li>
                     💧 Keep the affected skin clean and
-                    moisturized with gentle skin-care products
-                    when appropriate.
+                    use gentle skin-care products when appropriate.
                 </li>
 
                 <li>
@@ -710,10 +771,9 @@
                 </li>
 
                 <li>
-                    📅 If the concern persists, changes,
-                    worsens, or does not improve within a few
-                    days, consider consulting a qualified
-                    healthcare professional.
+                    👨‍⚕️ If the concern persists, changes,
+                    worsens, or worries you, consider consulting
+                    a qualified healthcare professional.
                 </li>
 
             </ul>
@@ -722,7 +782,7 @@
 
 
         <!-- ================================================= -->
-        <!-- EXTRA AI GUIDANCE -->
+        <!-- AI GUIDANCE -->
         <!-- ================================================= -->
 
         {% if guidance %}
@@ -730,8 +790,16 @@
         <div class="actions">
 
             <h3>
-                🤖 AI Guidance
+                🤖 AI-Based Guidance
             </h3>
+
+            {% if guidance_level %}
+
+            <p style="color:#666; line-height:1.6;">
+                {{ guidance_level }}
+            </p>
+
+            {% endif %}
 
             <ul>
 
@@ -759,14 +827,16 @@
         <div class="doctor">
 
             <h3>
-                👨‍⚕️ Consult a Dermatologist
+                👨‍⚕️ Need Professional Help?
             </h3>
 
             <p>
+
                 If you are concerned about the result,
-                or the skin concern persists or changes,
-                consider consulting a qualified healthcare
-                professional.
+                or if the skin concern persists, changes,
+                or worsens, consider consulting a qualified
+                healthcare professional.
+
             </p>
 
             <a
@@ -783,14 +853,37 @@
         {% endif %}
 
 
+        <!-- ================================================= -->
+        <!-- DISCLAIMER -->
+        <!-- ================================================= -->
+
+        <div class="warning">
+
+            ⚠️ <strong>Important:</strong>
+
+            This result is generated by an AI image
+            classification model.
+
+            It is an educational prediction and
+
+            <strong>
+                NOT a medical diagnosis.
+            </strong>
+
+            Do not use this result as a substitute for
+            professional medical advice.
+
+        </div>
+
+
     </div>
 
     {% endif %}
 
 
-    <!-- ================================================= -->
-    <!-- IDEA 2 ENTRY - NOT CHANGING YET -->
-    <!-- ================================================= -->
+    <!-- ===================================================== -->
+    <!-- TRACK MY SKIN -->
+    <!-- ===================================================== -->
 
     <div class="track-section">
 
@@ -799,8 +892,10 @@
         </h3>
 
         <p>
-            Upload two images from different dates
-            and compare the AI classifications.
+
+            Upload images from different dates and
+            compare the AI classifications.
+
         </p>
 
         <a
@@ -813,9 +908,9 @@
     </div>
 
 
-    <!-- ================================================= -->
-    <!-- TELEGRAM - NOT CHANGING YET -->
-    <!-- ================================================= -->
+    <!-- ===================================================== -->
+    <!-- TELEGRAM -->
+    <!-- ===================================================== -->
 
     <div class="telegram-section">
 
@@ -830,28 +925,10 @@
 
         <div class="telegram-text">
 
-            Send an image and get the prediction
-            through Telegram.
+            Send a skin image through Telegram and
+            receive an AI prediction and voice report.
 
         </div>
-
-    </div>
-
-
-    <!-- ================================================= -->
-    <!-- WARNING -->
-    <!-- ================================================= -->
-
-    <div class="warning">
-
-        ⚠️ <strong>Educational Project Notice:</strong>
-
-        This AI system is developed for educational
-        and project demonstration purposes.
-
-        Its prediction is not a medical diagnosis
-        and should not replace advice from a qualified
-        healthcare professional.
 
     </div>
 
@@ -861,16 +938,24 @@
 </main>
 
 
+<!-- ===================================================== -->
+<!-- FOOTER -->
+<!-- ===================================================== -->
+
 <footer class="footer">
 
     Skin Disease Detection Project
 
     <br>
 
-    CNN • TensorFlow • Flask
+    CNN • TensorFlow • Flask • Healthcare Assistance
 
 </footer>
 
+
+<!-- ===================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ===================================================== -->
 
 <script>
 
@@ -896,6 +981,7 @@ imageInput.addEventListener(
 
         const file = this.files[0];
 
+
         if (!file) {
 
             previewSection.style.display =
@@ -910,6 +996,7 @@ imageInput.addEventListener(
             preview.removeAttribute("src");
 
             return;
+
         }
 
 
@@ -931,6 +1018,7 @@ imageInput.addEventListener(
 
                 buttonArea.style.display =
                     "block";
+
             };
 
 
