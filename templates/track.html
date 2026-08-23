@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Track My Skin</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f8fc;
+            color: #1f2937;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f3d5e, #176b91);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .header p {
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            text-align: center;
+            color: #123f5c;
+        }
+
+        .info {
+            text-align: center;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .upload-box {
+            border: 2px dashed #7aa9c7;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            background: #f8fbfe;
+        }
+
+        .upload-box h3 {
+            color: #123f5c;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 1px solid #ccd6df;
+            border-radius: 8px;
+        }
+
+        .date-label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccd6df;
+            border-radius: 8px;
+        }
+
+        .button-area {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        button {
+            border: none;
+            background: linear-gradient(135deg, #0f3d5e, #176b91);
+            color: white;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .result {
+            margin-top: 30px;
+            background: #f8fbfe;
+            border: 1px solid #dcebf4;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            text-align: center;
+        }
+
+        .comparison-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e0e7ed;
+        }
+
+        .comparison-box h3 {
+            color: #123f5c;
+        }
+
+        .disease {
+            font-size: 20px;
+            font-weight: bold;
+            color: #176b91;
+            margin: 10px 0;
+        }
+
+        .confidence {
+            color: #555;
+        }
+
+        .note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff8e5;
+            border: 1px solid #f1d58a;
+            border-radius: 10px;
+            color: #705600;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 25px;
+            color: #176b91;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+
+            .card {
+                padding: 22px 16px;
+            }
+
+            .upload-grid,
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header class="header">
+
+    <h1>📊 Track My Skin</h1>
+
+    <p>
+        Compare AI predictions from two different dates
+    </p>
+
+</header>
+
+
+<main class="container">
+
+<div class="card">
+
+    <h2>
+        📸 Skin Progress Tracking
+    </h2>
+
+    <p class="info">
+
+        Upload an earlier image and a recent image.
+        The AI will classify both images so you can
+        observe changes over time.
+
+    </p>
+
+
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+    >
+
+
+        <div class="upload-grid">
+
+
+            <!-- OLD IMAGE -->
+
+            <div class="upload-box">
+
+                <h3>
+                    📅 Earlier Image
+                </h3>
+
+                <p>
+                    Upload your previous skin image.
+                </p>
+
+                <input
+                    type="file"
+                    name="old_image"
+                    accept="image/jpeg,image/png,image/jpg"
+                    required
+                >
+
+                <label class="date-label">
+                    Earlier Date
+                </label>
+
+                <input
+                    type="date"
+                    name="old_date"
+                    required
+                >
+
+            </div>
+
+
+            <!-- NEW IMAGE -->
+
+            <div class="upload-box">
+
+                <h3>
+                    🆕 Recent Image
+                </h3>
+
+                <p>
+                    Upload your recent skin image.
+                </p>
+
+                <input
+                    type="file"
+                    name="new_image"
+                    accept="image/jpeg,image/png,image/jpg"
+                    required
+                >
+
+                <label class="date-label">
+                    Recent Date
+                </label>
+
+                <input
+                    type="date"
+                    name="new_date"
+                    required
+                >
+
+            </div>
+
+        </div>
+
+
+        <div class="button-area">
+
+            <button type="submit">
+                🔍 Compare AI Results
+            </button>
+
+        </div>
+
+    </form>
+
+
+    {% if old_prediction and new_prediction %}
+
+    <div class="result">
+
+        <h2>
+            🔬 Comparison Result
+        </h2>
+
+
+        <div class="comparison">
+
+
+            <div class="comparison-box">
+
+                <h3>
+                    📅 Earlier
+                </h3>
+
+                <p>
+                    {{ old_date }}
+                </p>
+
+                <div class="disease">
+                    {{ old_prediction }}
+                </div>
+
+                <div class="confidence">
+                    Confidence:
+                    <strong>
+                        {{ "%.2f"|format(old_confidence) }}%
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <div class="comparison-box">
+
+                <h3>
+                    🆕 Recent
+                </h3>
+
+                <p>
+                    {{ new_date }}
+                </p>
+
+                <div class="disease">
+                    {{ new_prediction }}
+                </div>
+
+                <div class="confidence">
+                    Confidence:
+                    <strong>
+                        {{ "%.2f"|format(new_confidence) }}%
+                    </strong>
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <div class="note">
+
+            ⚠️ This comparison only shows how the AI
+            classified the two images. It does not determine
+            whether a medical condition has improved or worsened.
+            For medical concerns, consult a qualified healthcare
+            professional.
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+
+    <a
+        href="/"
+        class="back"
+    >
+        ← Back to Skin Disease AI
+    </a>
+
+
+</div>
+
+</main>
+
+
+</body>
+
+</html>
