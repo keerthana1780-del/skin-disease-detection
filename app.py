@@ -1403,6 +1403,11 @@ def telegram_webhook():
                     )
 
                     reply_markup = None
+                    send_telegram_message(
+                        chat_id,
+                        result_text, 
+                        reply_markup
+                    )
 
 
             # =================================================
@@ -1411,11 +1416,25 @@ def telegram_webhook():
 
             send_telegram_message(
                 chat_id,
-                result_text,
-                reply_markup
-            )
+                text,
+                reply_markup=None
+            ):
+                data = {
+                    "chat_id": chat_id,
+                    "text": text
+                }
 
+                if reply_markup:
+                    data["reply_markup"] = json.dumps(
+                        reply_markup.to_dict()
+                    )
 
+                return telegram_api(
+                    "sendMessage",
+                    data
+                )
+            
+                
             # =================================================
             # VOICE REPORT
             # =================================================
