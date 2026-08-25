@@ -407,71 +407,80 @@ def predict_image(image_path):
 
 
 # =========================================================
-# IDEA 1 - GENERAL GUIDANCE
+# GUIDANCE
 # =========================================================
 
 def get_guidance(disease, confidence):
 
+    # -----------------------------------------------------
     # LOW CONFIDENCE
-    if confidence < 50:
+    # -----------------------------------------------------
+
+    if confidence < 60:
 
         guidance_level = (
-            "Low AI confidence — the image could not be "
-            "classified reliably."
+            "Low AI confidence — the image could not "
+            "be classified reliably."
         )
 
-        common = [
+        guidance = [
+
             "The image may be unclear or difficult for the model to classify.",
+
             "Please upload a clear, close-up image in good lighting.",
+
             "Do not rely on this AI result for a medical decision."
+
         ]
 
-        return guidance_level, common
+        return guidance_level, guidance
 
 
-    # MEDIUM CONFIDENCE
-    elif confidence < 60:
+    # -----------------------------------------------------
+    # HIGH CONFIDENCE
+    # -----------------------------------------------------
 
-        guidance_level = (
-            "Limited AI confidence — professional evaluation "
-            "is recommended if you are concerned."
-        )
+    guidance_level = (
+        "AI prediction with higher model confidence. "
+        "This is not a medical diagnosis."
+    )
 
-    # HIGHER CONFIDENCE
-    else:
+    guidance = [
 
-        guidance_level = (
-            "AI prediction with higher model confidence. "
-            "This is not a medical diagnosis."
-        )
-
-
-    common = [
         "Keep the affected area clean and avoid unnecessary irritation.",
-        "Avoid scratching or picking the affected skin.",
-        "If the concern persists or changes, consult a qualified healthcare professional."
-    ]
 
+        "Avoid scratching or picking the affected skin.",
+
+        "If the concern persists or changes, consult a qualified healthcare professional."
+
+    ]
 
     disease_lower = disease.lower()
 
 
+    # -----------------------------------------------------
     # SERIOUS CONDITIONS
+    # -----------------------------------------------------
+
     if (
         "melanoma" in disease_lower
         or "carcinoma" in disease_lower
     ):
 
-        common = [
-            "This AI result may indicate a condition that needs professional assessment.",
+        guidance = [
+
+            "This AI result may indicate a potentially serious skin condition.",
+
             "Please consult a qualified healthcare professional promptly.",
+
             "Do not rely on the AI result alone for diagnosis or treatment."
+
         ]
 
 
     elif "eczema" in disease_lower:
 
-        common.insert(
+        guidance.insert(
             0,
             "Use gentle, fragrance-free skin care products if suitable."
         )
@@ -479,7 +488,7 @@ def get_guidance(disease, confidence):
 
     elif "atopic dermatitis" in disease_lower:
 
-        common.insert(
+        guidance.insert(
             0,
             "Avoid known skin irritants and use gentle skin care."
         )
@@ -487,7 +496,7 @@ def get_guidance(disease, confidence):
 
     elif "fungal" in disease_lower:
 
-        common.insert(
+        guidance.insert(
             0,
             "Keep the affected area clean and dry."
         )
@@ -495,14 +504,15 @@ def get_guidance(disease, confidence):
 
     elif "psoriasis" in disease_lower:
 
-        common.insert(
+        guidance.insert(
             0,
             "Avoid scratching or irritating the affected area."
         )
 
 
-    return guidance_level, common
-            
+    return guidance_level, guidance
+
+
 # =========================================================
 # DERMATOLOGIST MAP
 # =========================================================
@@ -531,6 +541,7 @@ def home():
 
     guidance = None
     guidance_level = None
+
     dermatologist_url = get_dermatologist_url()
 
     if request.method == "POST":
@@ -599,7 +610,7 @@ def home():
 
 
 # =========================================================
-# IDEA 2 - TRACK MY SKIN
+# TRACK MY SKIN
 # =========================================================
 
 @app.route(
@@ -713,7 +724,7 @@ def track():
 
 
 # =========================================================
-# TELEGRAM SEND MESSAGE
+# TELEGRAM MENU
 # =========================================================
 
 def send_telegram_menu(chat_id):
@@ -768,20 +779,28 @@ def send_telegram_menu(chat_id):
 
 def send_telegram_message(
     chat_id,
-    text
+    text,
+    reply_markup=None
 ):
+
+    data = {
+        "chat_id": chat_id,
+        "text": text
+    }
+
+    if reply_markup:
+        data["reply_markup"] = json.dumps(
+            reply_markup.to_dict()
+        )
 
     return telegram_api(
         "sendMessage",
-        {
-            "chat_id": chat_id,
-            "text": text
-        }
+        data
     )
 
 
 # =========================================================
-# IDEA 3 - VOICE REPORT
+# VOICE REPORT
 # =========================================================
 
 def send_voice_report(
@@ -815,26 +834,34 @@ def send_voice_report(
             voice_filename
         )
 
-        if confidence >= 70:
-            confidence_text = "high"
 
-        elif confidence >= 40:
-            confidence_text = "medium"
+        # -------------------------------------------------
+        # SAFE VOICE MESSAGE
+        # -------------------------------------------------
+
+        if confidence < 60:
+
+            voice_text = (
+                "Skin Disease AI report. "
+                "The image could not be classified confidently. "
+                "Please send a clear close-up image in good lighting. "
+                "This is an AI prediction and not a medical diagnosis."
+            )
 
         else:
-            confidence_text = "low"
 
-        voice_text = (
-            "Skin Disease AI report. "
-            f"The predicted class is {disease}. "
-            f"The model confidence is {confidence:.0f} percent. "
-            f"The confidence level is {confidence_text}. "
-            "This is an AI prediction and not a medical diagnosis. "
-            "Please consult a qualified healthcare professional "
-            "for medical advice."
-        )
+            voice_text = (
+                "Skin Disease AI report. "
+                f"The predicted class is {disease}. "
+                f"The model confidence is {confidence:.0f} percent. "
+                "This is an AI prediction and not a medical diagnosis. "
+                "Please consult a qualified healthcare professional "
+                "for medical advice."
+            )
+
 
         # Generate voice
+
         tts = gTTS(
             text=voice_text,
             lang="en"
@@ -844,9 +871,10 @@ def send_voice_report(
             voice_path
         )
 
-        # -----------------------------------------
-        # SEND MP3 USING MULTIPART FORM-DATA
-        # -----------------------------------------
+
+        # -------------------------------------------------
+        # SEND VOICE
+        # -------------------------------------------------
 
         boundary = (
             "----SkinDiseaseAI"
@@ -855,7 +883,9 @@ def send_voice_report(
 
         body = bytearray()
 
-        # chat_id field
+
+        # chat_id
+
         body.extend(
             (
                 f"--{boundary}\r\n"
@@ -864,13 +894,16 @@ def send_voice_report(
             ).encode("utf-8")
         )
 
+
         # voice file
+
         with open(
             voice_path,
             "rb"
         ) as audio:
 
             audio_data = audio.read()
+
 
         body.extend(
             (
@@ -881,7 +914,9 @@ def send_voice_report(
             ).encode("utf-8")
         )
 
-        body.extend(audio_data)
+        body.extend(
+            audio_data
+        )
 
         body.extend(
             f"\r\n--{boundary}--\r\n".encode(
@@ -889,12 +924,13 @@ def send_voice_report(
             )
         )
 
+
         url = (
             f"https://api.telegram.org/"
             f"bot{TOKEN}/sendVoice"
         )
 
-        request = urllib.request.Request(
+        req = urllib.request.Request(
             url,
             data=bytes(body),
             method="POST",
@@ -904,8 +940,9 @@ def send_voice_report(
             }
         )
 
+
         with urllib.request.urlopen(
-            request,
+            req,
             timeout=120
         ) as response:
 
@@ -913,21 +950,28 @@ def send_voice_report(
                 response.read().decode("utf-8")
             )
 
+
         if not result.get("ok"):
 
             raise RuntimeError(
                 f"Telegram voice API error: {result}"
             )
 
+
         print(
             "Voice report sent successfully."
         )
 
-        # Delete temporary voice file
+
+        # Delete temporary file
+
         try:
-            os.remove(voice_path)
+            os.remove(
+                voice_path
+            )
         except Exception:
             pass
+
 
     except Exception as e:
 
@@ -938,10 +982,9 @@ def send_voice_report(
 
         send_telegram_message(
             chat_id,
-            "🔊 Voice report could not be generated. "
-            "Here is the text report instead."
+            "🔊 Voice report could not be generated."
         )
-   
+
 
 # =========================================================
 # TELEGRAM PHOTO DOWNLOAD
@@ -1001,8 +1044,8 @@ def handle_button(
             "📖 How to Use\n\n"
             "1️⃣ Send a clear skin image.\n"
             "2️⃣ Wait while the AI analyzes it.\n"
-            "3️⃣ The bot will show the predicted class and confidence.\n"
-            "4️⃣ A voice report is also generated when available.\n\n"
+            "3️⃣ The bot will show the AI prediction only when confidence is sufficient.\n"
+            "4️⃣ A voice report is generated when available.\n\n"
             "⚠️ Use the result only as an AI prediction."
         )
 
@@ -1015,8 +1058,8 @@ def handle_button(
             "🤖 Model: Convolutional Neural Network (CNN)\n"
             "🖼️ Image Size: 224 × 224 pixels\n"
             "📊 Classes: 10\n\n"
-            "The model analyzes the uploaded image and "
-            "returns its predicted class."
+            "The model analyzes the uploaded image "
+            "and returns its predicted class."
         )
 
 
@@ -1037,8 +1080,7 @@ def handle_button(
             chat_id,
             "ℹ️ About Project\n\n"
             "🩺 Skin Disease Detection AI\n\n"
-            "CNN-based deep learning model for skin image "
-            "classification.\n\n"
+            "CNN-based deep learning model for skin image classification.\n\n"
             "🧠 CNN\n"
             "🖼️ 224 × 224 image size\n"
             "📊 10 classes\n"
@@ -1133,6 +1175,7 @@ def telegram_webhook():
 
             return "OK"
 
+
         chat = message.get(
             "chat",
             {}
@@ -1214,6 +1257,7 @@ def telegram_webhook():
                 "🔍 Analyzing the image... Please wait."
             )
 
+
             photo_list = message[
                 "photo"
             ]
@@ -1224,6 +1268,7 @@ def telegram_webhook():
                 "file_id"
             ]
 
+
             image_path = os.path.join(
                 UPLOAD_FOLDER,
                 "telegram_"
@@ -1231,10 +1276,12 @@ def telegram_webhook():
                 + ".jpg"
             )
 
+
             download_telegram_photo(
                 file_id,
                 image_path
             )
+
 
             disease, confidence = (
                 predict_image(
@@ -1254,6 +1301,7 @@ def telegram_webhook():
                 )
             )
 
+
             guidance_text = "\n".join(
                 [
                     "• " + item
@@ -1262,44 +1310,122 @@ def telegram_webhook():
             )
 
 
-# =================================================
-# SAFE RESULT DISPLAY
-# =================================================
+            # =================================================
+            # SAFE RESULT DISPLAY
+            # IMPORTANT:
+            # BELOW 60% = DO NOT SHOW DISEASE NAME
+            # =================================================
 
-if confidence < 50:
+            if confidence < 60:
 
-    result_text = (
-        "🔍 Prediction Result\n\n"
-        "⚠️ The image could not be classified confidently.\n\n"
-        f"📊 Model confidence: {confidence:.2f}%\n\n"
-        "📷 Please send a clear, close-up image "
-        "in good lighting.\n\n"
-        "⚠️ Do not rely on this AI result as a medical diagnosis."
-    )
+                result_text = (
+                    "🔍 Prediction Result\n\n"
 
-else:
+                    "⚠️ Image is not clear enough "
+                    "for a reliable AI prediction.\n\n"
 
-    result_text = (
-        "🔍 Prediction Result\n\n"
-        f"🦠 AI Prediction: {disease}\n"
-        f"📊 Confidence: {confidence:.2f}%\n\n"
-        f"📌 {guidance_level}\n\n"
-        f"{guidance_text}\n\n"
-        "👨‍⚕️ If you are concerned, consult a qualified "
-        "healthcare professional.\n\n"
-        "⚠️ This is an AI model prediction, "
-        "not a medical diagnosis."
-    )
+                    f"📊 Model confidence: "
+                    f"{confidence:.2f}%\n\n"
 
-# =================================================
-# IDEA 3 VOICE REPORT
-# =================================================
+                    "📷 Please send a clear, close-up "
+                    "photo in good lighting.\n\n"
+
+                    "⚠️ Do not rely on this AI result "
+                    "as a medical diagnosis."
+                )
+
+                reply_markup = None
+
+
+            else:
+
+                # -------------------------------------------------
+                # SERIOUS CONDITION
+                # -------------------------------------------------
+
+                disease_lower = disease.lower()
+
+                if (
+                    "melanoma" in disease_lower
+                    or "carcinoma" in disease_lower
+                ):
+
+                    hospital_button = InlineKeyboardMarkup(
+                        [
+                            [
+                                InlineKeyboardButton(
+                                    "🏥 Find Nearby Hospital",
+                                    url=get_dermatologist_url()
+                                )
+                            ]
+                        ]
+                    )
+
+                    result_text = (
+                        "🔍 Prediction Result\n\n"
+
+                        f"🦠 AI Prediction: {disease}\n"
+                        f"📊 Confidence: {confidence:.2f}%\n\n"
+
+                        "⚠️ This result may indicate "
+                        "a potentially serious skin condition.\n\n"
+
+                        "👨‍⚕️ Please consult a qualified "
+                        "healthcare professional promptly.\n\n"
+
+                        "Do not rely on the AI result alone "
+                        "for diagnosis or treatment.\n\n"
+
+                        "⚠️ This is an AI model prediction, "
+                        "not a medical diagnosis."
+                    )
+
+                    reply_markup = hospital_button
+
+
+                else:
+
+                    result_text = (
+                        "🔍 Prediction Result\n\n"
+
+                        f"🦠 AI Prediction: {disease}\n"
+                        f"📊 Confidence: {confidence:.2f}%\n\n"
+
+                        f"📌 {guidance_level}\n\n"
+
+                        f"{guidance_text}\n\n"
+
+                        "👨‍⚕️ If you are concerned, "
+                        "consult a qualified healthcare professional.\n\n"
+
+                        "⚠️ This is an AI model prediction, "
+                        "not a medical diagnosis."
+                    )
+
+                    reply_markup = None
+
+
+            # =================================================
+            # SEND RESULT
+            # =================================================
+
+            send_telegram_message(
+                chat_id,
+                result_text,
+                reply_markup
+            )
+
+
+            # =================================================
+            # VOICE REPORT
+            # =================================================
 
             send_voice_report(
                 chat_id,
                 disease,
                 confidence
             )
+
 
             return "OK"
 
