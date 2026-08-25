@@ -412,57 +412,78 @@ def predict_image(image_path):
 
 def get_guidance(disease, confidence):
 
-    if confidence >= 70:
+    # LOW CONFIDENCE
+    if confidence < 50:
 
         guidance_level = (
-            "Higher AI confidence — professional review "
-            "is recommended if concerned."
+            "Low AI confidence — the image could not be "
+            "classified reliably."
         )
 
-    elif confidence >= 40:
+        common = [
+            "The image may be unclear or difficult for the model to classify.",
+            "Please upload a clear, close-up image in good lighting.",
+            "Do not rely on this AI result for a medical decision."
+        ]
+
+        return guidance_level, common
+
+
+    # MEDIUM CONFIDENCE
+    elif confidence < 60:
 
         guidance_level = (
-            "Medium AI confidence — consider "
-            "professional evaluation."
+            "Limited AI confidence — professional evaluation "
+            "is recommended if you are concerned."
         )
 
+    # HIGHER CONFIDENCE
     else:
 
         guidance_level = (
-            "Low AI confidence — the image may be "
-            "difficult for the model to classify."
+            "AI prediction with higher model confidence. "
+            "This is not a medical diagnosis."
         )
 
+
     common = [
-
         "Keep the affected area clean and avoid unnecessary irritation.",
-
         "Avoid scratching or picking the affected skin.",
-
-        "Monitor the area for changes in appearance or symptoms.",
-
-        "If the concern persists, changes, or worries you, "
-        "consult a qualified healthcare professional."
-
+        "If the concern persists or changes, consult a qualified healthcare professional."
     ]
+
 
     disease_lower = disease.lower()
 
-    if "eczema" in disease_lower:
+
+    # SERIOUS CONDITIONS
+    if (
+        "melanoma" in disease_lower
+        or "carcinoma" in disease_lower
+    ):
+
+        common = [
+            "This AI result may indicate a condition that needs professional assessment.",
+            "Please consult a qualified healthcare professional promptly.",
+            "Do not rely on the AI result alone for diagnosis or treatment."
+        ]
+
+
+    elif "eczema" in disease_lower:
 
         common.insert(
             0,
-            "Use gentle, fragrance-free skin care products "
-            "if they are suitable for you."
+            "Use gentle, fragrance-free skin care products if suitable."
         )
+
 
     elif "atopic dermatitis" in disease_lower:
 
         common.insert(
             0,
-            "Avoid known skin irritants and use gentle, "
-            "fragrance-free skin care."
+            "Avoid known skin irritants and use gentle skin care."
         )
+
 
     elif "fungal" in disease_lower:
 
@@ -471,6 +492,7 @@ def get_guidance(disease, confidence):
             "Keep the affected area clean and dry."
         )
 
+
     elif "psoriasis" in disease_lower:
 
         common.insert(
@@ -478,22 +500,9 @@ def get_guidance(disease, confidence):
             "Avoid scratching or irritating the affected area."
         )
 
-    elif (
-        "melanoma" in disease_lower
-        or "carcinoma" in disease_lower
-    ):
-
-        common.insert(
-            0,
-            "Because this AI result concerns a potentially "
-            "serious skin condition, seek professional "
-            "medical evaluation rather than relying on "
-            "the AI result."
-        )
 
     return guidance_level, common
-
-
+            
 # =========================================================
 # DERMATOLOGIST MAP
 # =========================================================
@@ -1253,31 +1262,38 @@ def telegram_webhook():
             )
 
 
-            # =================================================
-            # TEXT RESULT
-            # =================================================
+# =================================================
+# SAFE RESULT DISPLAY
+# =================================================
 
-            result_text = (
-                "🔍 Prediction Result\n\n"
-                f"🦠 Disease: {disease}\n"
-                f"📊 Confidence: {confidence:.2f}%\n\n"
-                f"📌 {guidance_level}\n\n"
-                f"{guidance_text}\n\n"
-                "👨‍⚕️ If you are concerned, consult a qualified "
-                "healthcare professional.\n\n"
-                "⚠️ This is an AI model prediction, "
-                "not a medical diagnosis."
-            )
+if confidence < 50:
 
-            send_telegram_message(
-                chat_id,
-                result_text
-            )
+    result_text = (
+        "🔍 Prediction Result\n\n"
+        "⚠️ The image could not be classified confidently.\n\n"
+        f"📊 Model confidence: {confidence:.2f}%\n\n"
+        "📷 Please send a clear, close-up image "
+        "in good lighting.\n\n"
+        "⚠️ Do not rely on this AI result as a medical diagnosis."
+    )
 
+else:
 
-            # =================================================
-            # IDEA 3 VOICE REPORT
-            # =================================================
+    result_text = (
+        "🔍 Prediction Result\n\n"
+        f"🦠 AI Prediction: {disease}\n"
+        f"📊 Confidence: {confidence:.2f}%\n\n"
+        f"📌 {guidance_level}\n\n"
+        f"{guidance_text}\n\n"
+        "👨‍⚕️ If you are concerned, consult a qualified "
+        "healthcare professional.\n\n"
+        "⚠️ This is an AI model prediction, "
+        "not a medical diagnosis."
+    )
+
+# =================================================
+# IDEA 3 VOICE REPORT
+# =================================================
 
             send_voice_report(
                 chat_id,
