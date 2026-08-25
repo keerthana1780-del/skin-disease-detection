@@ -1198,16 +1198,11 @@ def telegram_webhook():
         # /start
         # =================================================
 
-        text = message.get(
-            "text",
-            ""
-        )
+        text = message.get("text", "").strip()
 
-        if text == "/start":
+        if text.startswith("/start"):
 
-            send_telegram_menu(
-                chat_id
-            )
+            send_telegram_menu(chat_id)
 
             return "OK"
 
