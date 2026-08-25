@@ -825,6 +825,7 @@ def send_voice_report(
             "for medical advice."
         )
 
+        # Generate voice
         tts = gTTS(
             text=voice_text,
             lang="en"
@@ -834,18 +835,90 @@ def send_voice_report(
             voice_path
         )
 
+        # -----------------------------------------
+        # SEND MP3 USING MULTIPART FORM-DATA
+        # -----------------------------------------
+
+        boundary = (
+            "----SkinDiseaseAI"
+            + uuid.uuid4().hex
+        )
+
+        body = bytearray()
+
+        # chat_id field
+        body.extend(
+            (
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="chat_id"\r\n\r\n'
+                f"{chat_id}\r\n"
+            ).encode("utf-8")
+        )
+
+        # voice file
         with open(
             voice_path,
             "rb"
         ) as audio:
 
-            telegram_api(
-                "sendVoice",
-                {
-                    "chat_id": chat_id,
-                    "voice": audio
-                }
+            audio_data = audio.read()
+
+        body.extend(
+            (
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; '
+                f'name="voice"; filename="{voice_filename}"\r\n'
+                f"Content-Type: audio/mpeg\r\n\r\n"
+            ).encode("utf-8")
+        )
+
+        body.extend(audio_data)
+
+        body.extend(
+            f"\r\n--{boundary}--\r\n".encode(
+                "utf-8"
             )
+        )
+
+        url = (
+            f"https://api.telegram.org/"
+            f"bot{TOKEN}/sendVoice"
+        )
+
+        request = urllib.request.Request(
+            url,
+            data=bytes(body),
+            method="POST",
+            headers={
+                "Content-Type":
+                    f"multipart/form-data; boundary={boundary}"
+            }
+        )
+
+        with urllib.request.urlopen(
+            request,
+            timeout=120
+        ) as response:
+
+            result = json.loads(
+                response.read().decode("utf-8")
+            )
+
+        if not result.get("ok"):
+
+            raise RuntimeError(
+                f"Telegram voice API error: {result}"
+            )
+
+        print(
+            "Voice report sent successfully."
+        )
+
+        # Delete temporary voice file
+        try:
+            os.remove(voice_path)
+        except Exception:
+            pass
 
     except Exception as e:
 
@@ -859,7 +932,7 @@ def send_voice_report(
             "🔊 Voice report could not be generated. "
             "Here is the text report instead."
         )
-
+   
 
 # =========================================================
 # TELEGRAM PHOTO DOWNLOAD
